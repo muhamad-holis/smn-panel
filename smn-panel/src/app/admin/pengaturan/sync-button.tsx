@@ -9,8 +9,14 @@ export default function SyncButton() {
 
   async function handleSync() {
     setLoading(true);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000);
+
     try {
-      const res = await fetch("/api/provider/services", { method: "POST" });
+      const res = await fetch("/api/provider/services", {
+        method: "POST",
+        signal: controller.signal,
+      });
       const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
@@ -20,8 +26,15 @@ export default function SyncButton() {
         alert(data.error || `Gagal sinkronisasi (HTTP ${res.status}).`);
       }
     } catch (e: any) {
-      alert("Gagal menghubungi server: " + (e?.message || "Unknown error"));
+      if (e?.name === "AbortError") {
+        alert(
+          "Sinkronisasi timeout (25 detik). Kemungkinan PROVIDER_API_URL/PROVIDER_API_KEY salah, atau provider tidak merespons. Cek Environment Variables di Vercel."
+        );
+      } else {
+        alert("Gagal menghubungi server: " + (e?.message || "Unknown error"));
+      }
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   }

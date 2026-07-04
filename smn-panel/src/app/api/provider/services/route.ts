@@ -3,6 +3,8 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { provider } from "@/lib/provider";
 import { applyMarkup } from "@/lib/utils";
 
+export const maxDuration = 60;
+
 /**
  * Sinkronisasi daftar layanan dari provider djuragansosmed ke tabel services.
  * - Layanan baru akan ditambahkan dengan markup_percent = DEFAULT_MARKUP_PERCENT.

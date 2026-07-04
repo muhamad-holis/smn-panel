@@ -7,18 +7,31 @@ const API_URL = process.env.PROVIDER_API_URL || "https://djuragansosmed.com/api/
 const API_KEY = process.env.PROVIDER_API_KEY || "";
 
 async function call<T = any>(params: Record<string, string | number | undefined>): Promise<T> {
+  if (!API_KEY) {
+    throw new Error("PROVIDER_API_KEY belum diset di environment variable.");
+  }
+
   const body = new URLSearchParams();
   body.set("key", API_KEY);
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined) body.set(k, String(v));
   }
 
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-    cache: "no-store",
-  });
+  let res: Response;
+  try {
+    res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+      cache: "no-store",
+      signal: AbortSignal.timeout(15000),
+    });
+  } catch (e: any) {
+    if (e?.name === "TimeoutError" || e?.name === "AbortError") {
+      throw new Error(`Provider tidak merespons dalam 15 detik. Cek PROVIDER_API_URL: ${API_URL}`);
+    }
+    throw new Error(`Gagal terhubung ke provider (${API_URL}): ${e?.message || e}`);
+  }
 
   if (!res.ok) {
     throw new Error(`Provider API error: HTTP ${res.status}`);
