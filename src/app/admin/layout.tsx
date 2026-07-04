@@ -23,24 +23,24 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-6">
+        <div className="mx-auto max-w-6xl px-6 py-4">
+          <div className="flex items-center justify-between">
             <span className="text-lg font-bold text-purple-700">Admin - SMM Panel</span>
-            <nav className="hidden gap-1 sm:flex">
-              {links.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </nav>
+            <Link href="/dashboard" className="text-sm text-brand-600 hover:underline">
+              ← Dashboard
+            </Link>
           </div>
-          <Link href="/dashboard" className="text-sm text-brand-600 hover:underline">
-            ← Kembali ke Dashboard
-          </Link>
+          <nav className="mt-3 flex gap-1 overflow-x-auto">
+            {links.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
