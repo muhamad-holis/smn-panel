@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { formatIDR } from "@/lib/utils";
 import ProviderBalanceCard from "./provider-balance-card";
+import SyncOrdersButton from "./sync-orders-button";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,10 @@ export default async function AdminOverview() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-bold text-gray-900">Ringkasan</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-xl font-bold text-gray-900">Ringkasan</h1>
+        <SyncOrdersButton />
+      </div>
 
       <div className="mb-4">
         <ProviderBalanceCard warningThreshold={warningThreshold} />

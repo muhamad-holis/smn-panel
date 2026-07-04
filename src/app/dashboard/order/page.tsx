@@ -5,7 +5,7 @@ export default async function OrderPage() {
   const supabase = createClient();
   const { data: services } = await supabase
     .from("services")
-    .select("id, name, category, sell_rate, min_order, max_order, refill")
+    .select("id, name, category, sell_rate, min_order, max_order, refill, cancel, description")
     .eq("is_active", true)
     .order("category", { ascending: true });
 
