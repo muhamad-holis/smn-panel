@@ -9,15 +9,20 @@ export default function SyncButton() {
 
   async function handleSync() {
     setLoading(true);
-    const res = await fetch("/api/provider/services", { method: "POST" });
-    const data = await res.json();
-    setLoading(false);
+    try {
+      const res = await fetch("/api/provider/services", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
 
-    if (res.ok) {
-      alert(`Sinkron selesai. ${data.created} layanan baru, ${data.updated} diperbarui.`);
-      router.refresh();
-    } else {
-      alert(data.error || "Gagal sinkronisasi.");
+      if (res.ok) {
+        alert(`Sinkron selesai. ${data.created} layanan baru, ${data.updated} diperbarui.`);
+        router.refresh();
+      } else {
+        alert(data.error || `Gagal sinkronisasi (HTTP ${res.status}).`);
+      }
+    } catch (e: any) {
+      alert("Gagal menghubungi server: " + (e?.message || "Unknown error"));
+    } finally {
+      setLoading(false);
     }
   }
 
