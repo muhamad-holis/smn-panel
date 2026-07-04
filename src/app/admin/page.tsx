@@ -42,7 +42,7 @@ export default async function AdminOverview() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Ringkasan</h1>
+        <h1 className="text-xl font-bold text-white">Ringkasan</h1>
         <SyncOrdersButton />
       </div>
 
@@ -52,9 +52,9 @@ export default async function AdminOverview() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stats.map((s) => (
-          <div key={s.label} className={`card ${s.highlight ? "bg-green-50 border-green-200" : ""}`}>
-            <p className="text-sm text-gray-500">{s.label}</p>
-            <p className={`mt-1 text-2xl font-bold ${s.highlight ? "text-green-700" : "text-gray-900"}`}>
+          <div key={s.label} className={`card ${s.highlight ? "bg-emerald-500/10 border-emerald-500/30" : ""}`}>
+            <p className="text-sm text-navy-400">{s.label}</p>
+            <p className={`mt-1 text-2xl font-bold ${s.highlight ? "text-emerald-400" : "text-white"}`}>
               {s.value}
             </p>
           </div>

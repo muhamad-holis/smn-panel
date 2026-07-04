@@ -11,7 +11,7 @@ export default async function OrderPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-6 text-xl font-bold text-gray-900">Buat Order Baru</h1>
+      <h1 className="mb-6 text-xl font-bold text-white">Buat Order Baru</h1>
       <OrderForm services={services || []} />
     </div>
   );

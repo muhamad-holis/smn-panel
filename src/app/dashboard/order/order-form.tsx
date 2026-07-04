@@ -73,18 +73,18 @@ export default function OrderForm({ services }: { services: Service[] }) {
   }
 
   if (services.length === 0) {
-    return <p className="card text-sm text-gray-500">Belum ada layanan tersedia saat ini.</p>;
+    return <p className="card text-sm text-navy-400">Belum ada layanan tersedia saat ini.</p>;
   }
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
       {/* Form order */}
       <form onSubmit={handleSubmit} className="card space-y-4 lg:col-span-3">
-        {error && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>}
-        {success && <div className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">{success}</div>}
+        {error && <div className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>}
+        {success && <div className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">{success}</div>}
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Layanan</label>
+          <label className="mb-1.5 block text-sm font-medium text-navy-200">Layanan</label>
           <select
             className="input"
             value={serviceId}
@@ -108,7 +108,7 @@ export default function OrderForm({ services }: { services: Service[] }) {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Link Tujuan</label>
+          <label className="mb-1.5 block text-sm font-medium text-navy-200">Link Tujuan</label>
           <input
             type="text"
             className="input"
@@ -119,27 +119,57 @@ export default function OrderForm({ services }: { services: Service[] }) {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">
+          <label className="mb-1.5 block text-sm font-medium text-navy-200">
             Jumlah{" "}
             {selected && (
-              <span className="font-normal text-gray-400">
+              <span className="font-normal text-navy-500">
                 (min {selected.min_order}, maks {selected.max_order})
               </span>
             )}
           </label>
-          <input
-            type="number"
-            className="input"
-            value={quantity}
-            min={selected?.min_order}
-            max={selected?.max_order}
-            onChange={(e) => setQuantity(Number(e.target.value))}
-          />
+          <div className="flex gap-2">
+            <input
+              type="number"
+              className="input"
+              value={quantity}
+              min={selected?.min_order}
+              max={selected?.max_order}
+              onChange={(e) => setQuantity(Number(e.target.value))}
+            />
+            <button
+              type="button"
+              className="qty-btn shrink-0"
+              onClick={() => setQuantity((q) => Math.min(q + 100, selected?.max_order ?? q + 100))}
+            >
+              +100
+            </button>
+            <button
+              type="button"
+              className="qty-btn shrink-0"
+              onClick={() => setQuantity((q) => Math.min(q + 500, selected?.max_order ?? q + 500))}
+            >
+              +500
+            </button>
+            <button
+              type="button"
+              className="qty-btn shrink-0"
+              onClick={() => setQuantity((q) => Math.min(q + 1000, selected?.max_order ?? q + 1000))}
+            >
+              +1000
+            </button>
+            <button
+              type="button"
+              className="qty-btn shrink-0"
+              onClick={() => selected && setQuantity(selected.max_order)}
+            >
+              Max
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3">
-          <span className="text-sm text-gray-600">Estimasi Biaya</span>
-          <span className="text-lg font-bold text-brand-600">{formatIDR(estimate)}</span>
+        <div className="flex items-center justify-between rounded-lg bg-navy-800/60 px-4 py-3">
+          <span className="text-sm text-navy-300">Estimasi Biaya</span>
+          <span className="text-lg font-bold text-brand-400">{formatIDR(estimate)}</span>
         </div>
 
         <button type="submit" disabled={loading} className="btn-primary w-full">
@@ -156,30 +186,30 @@ export default function OrderForm({ services }: { services: Service[] }) {
                 <Tag size={13} />
                 {selected.category}
               </p>
-              <h3 className="mt-1 font-semibold text-gray-900">{selected.name}</h3>
+              <h3 className="mt-1 font-semibold text-white">{selected.name}</h3>
             </div>
 
             {selected.description && (
-              <p className="border-t border-gray-100 pt-3 text-sm text-gray-600">{selected.description}</p>
+              <p className="border-t border-navy-800 pt-3 text-sm text-navy-300">{selected.description}</p>
             )}
 
-            <div className="grid grid-cols-2 gap-3 border-t border-gray-100 pt-3 text-sm">
+            <div className="grid grid-cols-2 gap-3 border-t border-navy-800 pt-3 text-sm">
               <div>
-                <p className="text-gray-400">Harga / 1000</p>
-                <p className="font-semibold text-gray-900">{formatIDR(selected.sell_rate)}</p>
+                <p className="text-navy-500">Harga / 1000</p>
+                <p className="font-semibold text-white">{formatIDR(selected.sell_rate)}</p>
               </div>
               <div>
-                <p className="text-gray-400">Min - Maks</p>
-                <p className="font-semibold text-gray-900">
+                <p className="text-navy-500">Min - Maks</p>
+                <p className="font-semibold text-white">
                   {selected.min_order} - {selected.max_order}
                 </p>
               </div>
             </div>
 
-            <div className="flex gap-2 border-t border-gray-100 pt-3">
+            <div className="flex gap-2 border-t border-navy-800 pt-3">
               <span
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                  selected.refill ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                  selected.refill ? "bg-emerald-500/10 text-emerald-400" : "bg-navy-800 text-navy-400"
                 }`}
               >
                 <RefreshCw size={12} />
@@ -187,7 +217,7 @@ export default function OrderForm({ services }: { services: Service[] }) {
               </span>
               <span
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                  selected.cancel ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"
+                  selected.cancel ? "bg-blue-500/10 text-blue-400" : "bg-navy-800 text-navy-400"
                 }`}
               >
                 {selected.cancel ? <CheckCircle2 size={12} /> : <XCircle size={12} />}

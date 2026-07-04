@@ -67,16 +67,16 @@ export default function TopupPage() {
     return (
       <div className="mx-auto max-w-md">
         <div className="card text-center">
-          <h1 className="text-lg font-bold text-gray-900">Selesaikan Pembayaran</h1>
-          <p className="mt-1 text-sm text-gray-500">Invoice: {payment.invoice_id}</p>
-          <p className="mt-4 text-3xl font-bold text-brand-600">{formatIDR(payment.final_amount)}</p>
-          <p className="mt-1 text-xs text-gray-400">
+          <h1 className="text-lg font-bold text-white">Selesaikan Pembayaran</h1>
+          <p className="mt-1 text-sm text-navy-400">Invoice: {payment.invoice_id}</p>
+          <p className="mt-4 text-3xl font-bold text-brand-400">{formatIDR(payment.final_amount)}</p>
+          <p className="mt-1 text-xs text-navy-500">
             (termasuk kode unik agar pembayaran terverifikasi otomatis)
           </p>
 
           {payment.qr_image && (
             <div className="mx-auto mt-6 w-56">
-              <img src={payment.qr_image} alt="QRIS" className="w-full rounded-lg border border-gray-200" />
+              <img src={payment.qr_image} alt="QRIS" className="w-full rounded-lg border border-navy-800" />
             </div>
           )}
 
@@ -91,7 +91,7 @@ export default function TopupPage() {
             </a>
           )}
 
-          <p className="mt-4 text-xs text-gray-400">
+          <p className="mt-4 text-xs text-navy-500">
             {checking ? "Mengecek status pembayaran..." : "Saldo akan otomatis bertambah begitu pembayaran terkonfirmasi."}
           </p>
 
@@ -105,9 +105,9 @@ export default function TopupPage() {
 
   return (
     <div className="mx-auto max-w-md">
-      <h1 className="mb-6 text-xl font-bold text-gray-900">Top Up Saldo</h1>
+      <h1 className="mb-6 text-xl font-bold text-white">Top Up Saldo</h1>
       <div className="card space-y-4">
-        {error && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>}
+        {error && <div className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>}
 
         <div className="grid grid-cols-3 gap-2">
           {PRESETS.map((p) => (
@@ -116,8 +116,8 @@ export default function TopupPage() {
               onClick={() => setAmount(p)}
               className={`rounded-lg border px-2 py-2.5 text-sm font-medium transition ${
                 amount === p
-                  ? "border-brand-500 bg-brand-50 text-brand-700"
-                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                  ? "border-brand-500 bg-brand-500/10 text-brand-300"
+                  : "border-navy-800 text-navy-300 hover:bg-navy-800/60"
               }`}
             >
               {formatIDR(p)}
@@ -126,7 +126,7 @@ export default function TopupPage() {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Atau masukkan jumlah lain</label>
+          <label className="mb-1.5 block text-sm font-medium text-navy-200">Atau masukkan jumlah lain</label>
           <input
             type="number"
             className="input"

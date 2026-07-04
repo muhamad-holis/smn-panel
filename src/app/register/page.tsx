@@ -52,10 +52,10 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
+      <main className="flex min-h-screen items-center justify-center bg-navy-800/60 px-6">
         <div className="card max-w-sm text-center">
-          <h1 className="text-lg font-bold text-gray-900">Cek Email Kamu</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <h1 className="text-lg font-bold text-white">Cek Email Kamu</h1>
+          <p className="mt-2 text-sm text-navy-300">
             Kami sudah mengirim link konfirmasi ke <b>{email}</b>. Klik link tersebut untuk mengaktifkan akun.
           </p>
           <Link href="/login" className="btn-primary mt-6 w-full">
@@ -67,21 +67,21 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
+    <main className="flex min-h-screen items-center justify-center bg-navy-800/60 px-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <Link href="/" className="text-2xl font-bold text-brand-600">
+          <Link href="/" className="text-2xl font-bold text-brand-400">
             SMM Panel
           </Link>
-          <p className="mt-2 text-sm text-gray-600">Buat akun baru, gratis</p>
+          <p className="mt-2 text-sm text-navy-300">Buat akun baru, gratis</p>
         </div>
 
         <form onSubmit={handleSubmit} className="card space-y-4">
           {error && (
-            <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>
+            <div className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>
           )}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Nama Lengkap</label>
+            <label className="mb-1.5 block text-sm font-medium text-navy-200">Nama Lengkap</label>
             <input
               type="text"
               required
@@ -92,7 +92,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Email</label>
+            <label className="mb-1.5 block text-sm font-medium text-navy-200">Email</label>
             <input
               type="email"
               required
@@ -103,7 +103,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Password</label>
+            <label className="mb-1.5 block text-sm font-medium text-navy-200">Password</label>
             <input
               type="password"
               required
@@ -118,9 +118,9 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p className="mt-4 text-center text-sm text-navy-300">
           Sudah punya akun?{" "}
-          <Link href="/login" className="font-medium text-brand-600 hover:underline">
+          <Link href="/login" className="font-medium text-brand-400 hover:underline">
             Masuk di sini
           </Link>
         </p>

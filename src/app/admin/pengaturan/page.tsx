@@ -23,7 +23,7 @@ export default async function AdminPengaturanPage() {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Layanan &amp; Harga</h1>
+        <h1 className="text-xl font-bold text-white">Layanan &amp; Harga</h1>
         <SyncButton />
       </div>
 
@@ -34,12 +34,12 @@ export default async function AdminPengaturanPage() {
       />
 
       <div className="card">
-        <p className="mb-4 text-sm text-gray-500">
+        <p className="mb-4 text-sm text-navy-400">
           Harga jual dihitung otomatis dari harga modal provider × markup. Ubah markup per-layanan lalu klik simpan.
         </p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase text-gray-500">
+            <thead className="text-left text-xs uppercase text-navy-400">
               <tr>
                 <th className="py-2">Layanan</th>
                 <th className="py-2">Kategori</th>
@@ -50,7 +50,7 @@ export default async function AdminPengaturanPage() {
                 <th className="py-2"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-navy-800">
               {(services || []).map((s) => (
                 <ServiceRow key={s.id} service={s} />
               ))}

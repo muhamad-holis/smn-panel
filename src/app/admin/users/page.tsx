@@ -13,10 +13,10 @@ export default async function AdminUsersPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-bold text-gray-900">Kelola Pengguna</h1>
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+      <h1 className="mb-6 text-xl font-bold text-white">Kelola Pengguna</h1>
+      <div className="overflow-x-auto rounded-xl border border-navy-800 bg-navy-900">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+          <thead className="bg-navy-800/60 text-left text-xs uppercase text-navy-400">
             <tr>
               <th className="px-4 py-3">Nama</th>
               <th className="px-4 py-3">Email</th>
@@ -26,22 +26,22 @@ export default async function AdminUsersPage() {
               <th className="px-4 py-3">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-navy-800">
             {(users || []).map((u) => (
               <tr key={u.id}>
-                <td className="px-4 py-3 font-medium text-gray-900">{u.full_name || "-"}</td>
-                <td className="px-4 py-3 text-gray-600">{u.email}</td>
+                <td className="px-4 py-3 font-medium text-white">{u.full_name || "-"}</td>
+                <td className="px-4 py-3 text-navy-300">{u.email}</td>
                 <td className="px-4 py-3">
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs ${
-                      u.role === "admin" ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600"
+                      u.role === "admin" ? "bg-purple-100 text-purple-700" : "bg-navy-800 text-navy-300"
                     }`}
                   >
                     {u.role}
                   </span>
                 </td>
-                <td className="px-4 py-3 font-semibold text-brand-600">{formatIDR(u.balance)}</td>
-                <td className="px-4 py-3 text-gray-500">{formatDate(u.created_at)}</td>
+                <td className="px-4 py-3 font-semibold text-brand-400">{formatIDR(u.balance)}</td>
+                <td className="px-4 py-3 text-navy-400">{formatDate(u.created_at)}</td>
                 <td className="px-4 py-3">
                   <BalanceAdjustForm userId={u.id} />
                 </td>

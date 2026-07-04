@@ -39,25 +39,25 @@ export default function GlobalSettingsForm({
 
   return (
     <div className="card">
-      <h2 className="mb-4 font-semibold text-gray-900">Pengaturan Global</h2>
+      <h2 className="mb-4 font-semibold text-white">Pengaturan Global</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">
+          <label className="mb-1.5 block text-sm font-medium text-navy-200">
             Markup Default Layanan Baru (%)
           </label>
           <input className="input" value={markup} onChange={(e) => setMarkup(e.target.value)} />
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">Kurs USD → IDR</label>
+          <label className="mb-1.5 block text-sm font-medium text-navy-200">Kurs USD → IDR</label>
           <input className="input" value={rate} onChange={(e) => setRate(e.target.value)} />
-          <p className="mt-1 text-xs text-gray-400">Provider melaporkan harga dalam USD per 1000.</p>
+          <p className="mt-1 text-xs text-navy-500">Provider melaporkan harga dalam USD per 1000.</p>
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">
+          <label className="mb-1.5 block text-sm font-medium text-navy-200">
             Ambang Warning Saldo Modal (Rp)
           </label>
           <input className="input" value={warning} onChange={(e) => setWarning(e.target.value)} />
-          <p className="mt-1 text-xs text-gray-400">Muncul peringatan di dashboard admin kalau saldo di bawah ini.</p>
+          <p className="mt-1 text-xs text-navy-500">Muncul peringatan di dashboard admin kalau saldo di bawah ini.</p>
         </div>
         <div className="flex items-end">
           <button onClick={handleSave} disabled={saving} className="btn-primary w-full">

@@ -33,21 +33,21 @@ export default function LoginForm() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
+    <main className="flex min-h-screen items-center justify-center bg-navy-800/60 px-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <Link href="/" className="text-2xl font-bold text-brand-600">
+          <Link href="/" className="text-2xl font-bold text-brand-400">
             SMM Panel
           </Link>
-          <p className="mt-2 text-sm text-gray-600">Masuk ke akun kamu</p>
+          <p className="mt-2 text-sm text-navy-300">Masuk ke akun kamu</p>
         </div>
 
         <form onSubmit={handleSubmit} className="card space-y-4">
           {error && (
-            <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>
+            <div className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>
           )}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Email</label>
+            <label className="mb-1.5 block text-sm font-medium text-navy-200">Email</label>
             <input
               type="email"
               required
@@ -58,7 +58,7 @@ export default function LoginForm() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Password</label>
+            <label className="mb-1.5 block text-sm font-medium text-navy-200">Password</label>
             <input
               type="password"
               required
@@ -73,9 +73,9 @@ export default function LoginForm() {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p className="mt-4 text-center text-sm text-navy-300">
           Belum punya akun?{" "}
-          <Link href="/register" className="font-medium text-brand-600 hover:underline">
+          <Link href="/register" className="font-medium text-brand-400 hover:underline">
             Daftar di sini
           </Link>
         </p>

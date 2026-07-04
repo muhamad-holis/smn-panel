@@ -16,11 +16,11 @@ export default async function HomePage() {
   return (
     <main>
       {/* Nav */}
-      <header className="border-b border-gray-200 bg-white">
+      <header className="border-b border-navy-800 bg-navy-900">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="text-xl font-bold text-brand-600">SMM Panel</span>
+          <span className="text-xl font-bold text-brand-400">SMM Panel</span>
           <nav className="flex items-center gap-3">
-            <Link href="/layanan" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+            <Link href="/layanan" className="text-sm font-medium text-navy-300 hover:text-white">
               Daftar Harga
             </Link>
             <Link href="/login" className="btn-secondary">
@@ -35,10 +35,10 @@ export default async function HomePage() {
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-6 py-20 text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
+        <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
           Booster Media Sosial <span className="text-brand-500">Termurah &amp; Tercepat</span>
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
+        <p className="mx-auto mt-4 max-w-2xl text-lg text-navy-300">
           Followers, Likes, Views, Comments untuk Instagram, TikTok, YouTube, Facebook, dan lainnya.
           Proses otomatis 24 jam, garansi refill.
         </p>
@@ -55,18 +55,18 @@ export default async function HomePage() {
       {/* Featured services */}
       {services && services.length > 0 && (
         <section className="mx-auto max-w-6xl px-6 pb-20">
-          <h2 className="mb-6 text-xl font-bold text-gray-900">Layanan Termurah</h2>
+          <h2 className="mb-6 text-xl font-bold text-white">Layanan Termurah</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {services.map((s) => (
               <div key={s.id} className="card">
                 <p className="text-xs font-medium uppercase tracking-wide text-brand-500">
                   {s.category}
                 </p>
-                <p className="mt-1 font-semibold text-gray-900">{s.name}</p>
-                <p className="mt-3 text-lg font-bold text-gray-900">
-                  {formatIDR(s.sell_rate)} <span className="text-sm font-normal text-gray-500">/ 1000</span>
+                <p className="mt-1 font-semibold text-white">{s.name}</p>
+                <p className="mt-3 text-lg font-bold text-white">
+                  {formatIDR(s.sell_rate)} <span className="text-sm font-normal text-navy-400">/ 1000</span>
                 </p>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-navy-400">
                   Min {s.min_order} - Maks {s.max_order}
                 </p>
               </div>
@@ -75,7 +75,7 @@ export default async function HomePage() {
         </section>
       )}
 
-      <footer className="border-t border-gray-200 py-8 text-center text-sm text-gray-500">
+      <footer className="border-t border-navy-800 py-8 text-center text-sm text-navy-400">
         © {new Date().getFullYear()} SMM Panel. Semua hak dilindungi.
       </footer>
     </main>

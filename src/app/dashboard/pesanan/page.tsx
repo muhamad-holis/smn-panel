@@ -18,14 +18,14 @@ export default async function PesananPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-bold text-gray-900">Riwayat Order</h1>
+      <h1 className="mb-6 text-xl font-bold text-white">Riwayat Order</h1>
 
       {!orders || orders.length === 0 ? (
-        <p className="card text-center text-sm text-gray-500">Belum ada order.</p>
+        <p className="card text-center text-sm text-navy-400">Belum ada order.</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+        <div className="overflow-x-auto rounded-xl border border-navy-800 bg-navy-900">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+            <thead className="bg-navy-800/60 text-left text-xs uppercase text-navy-400">
               <tr>
                 <th className="px-4 py-3">ID</th>
                 <th className="px-4 py-3">Layanan</th>
@@ -38,25 +38,25 @@ export default async function PesananPage() {
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-navy-800">
               {orders.map((o: any) => (
                 <tr key={o.id}>
-                  <td className="px-4 py-3 text-gray-500">#{o.id}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{o.services?.name}</td>
-                  <td className="max-w-[180px] truncate px-4 py-3 text-gray-500">
+                  <td className="px-4 py-3 text-navy-400">#{o.id}</td>
+                  <td className="px-4 py-3 font-medium text-white">{o.services?.name}</td>
+                  <td className="max-w-[180px] truncate px-4 py-3 text-navy-400">
                     <a href={o.link} target="_blank" className="hover:underline">
                       {o.link}
                     </a>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{o.quantity}</td>
-                  <td className="px-4 py-3 text-gray-600">{o.remains ?? "-"}</td>
-                  <td className="px-4 py-3 text-gray-600">{formatIDR(o.charge)}</td>
+                  <td className="px-4 py-3 text-navy-300">{o.quantity}</td>
+                  <td className="px-4 py-3 text-navy-300">{o.remains ?? "-"}</td>
+                  <td className="px-4 py-3 text-navy-300">{formatIDR(o.charge)}</td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2 py-0.5 text-xs ${statusBadgeClass(o.status)}`}>
                       {o.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-500">{formatDate(o.created_at)}</td>
+                  <td className="px-4 py-3 text-navy-400">{formatDate(o.created_at)}</td>
                   <td className="px-4 py-3">
                     {o.services?.refill && o.status === "Completed" && (
                       <RefillButton orderId={o.id} />

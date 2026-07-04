@@ -29,25 +29,25 @@ export default function ProviderBalanceCard({ warningThreshold }: { warningThres
   const isLow = balance !== null && balance < warningThreshold;
 
   return (
-    <div className={`card ${isLow ? "border-red-300 bg-red-50" : ""}`}>
+    <div className={`card ${isLow ? "border-red-300 bg-red-500/10" : ""}`}>
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">Saldo Modal di Djuragansosmed</p>
-        <button onClick={fetchBalance} className="text-xs text-brand-600 hover:underline">
+        <p className="text-sm text-navy-400">Saldo Modal di Djuragansosmed</p>
+        <button onClick={fetchBalance} className="text-xs text-brand-400 hover:underline">
           🔄 Refresh
         </button>
       </div>
 
       {loading ? (
-        <p className="mt-1 text-2xl font-bold text-gray-400">Memuat...</p>
+        <p className="mt-1 text-2xl font-bold text-navy-500">Memuat...</p>
       ) : error ? (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+        <p className="mt-1 text-sm text-red-400">{error}</p>
       ) : (
         <>
-          <p className={`mt-1 text-2xl font-bold ${isLow ? "text-red-700" : "text-gray-900"}`}>
+          <p className={`mt-1 text-2xl font-bold ${isLow ? "text-red-400" : "text-white"}`}>
             {formatIDR(balance || 0)}
           </p>
           {isLow && (
-            <p className="mt-2 text-xs font-medium text-red-700">
+            <p className="mt-2 text-xs font-medium text-red-400">
               ⚠️ Saldo di bawah ambang batas ({formatIDR(warningThreshold)}). Segera top up saldo
               di dashboard djuragansosmed sebelum kehabisan saat order masuk. Ingat, penarikan dari
               cashi.id butuh H-1, jadi jangan tunggu sampai benar-benar habis.

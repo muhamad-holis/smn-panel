@@ -28,17 +28,17 @@ export function calcCharge(sellRatePer1000: number, quantity: number): number {
 export function statusBadgeClass(status: string): string {
   switch (status) {
     case "Completed":
-      return "bg-green-100 text-green-700";
+      return "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20";
     case "Partial":
-      return "bg-yellow-100 text-yellow-700";
+      return "bg-yellow-500/10 text-yellow-400 ring-1 ring-yellow-500/20";
     case "In progress":
     case "Processing":
-      return "bg-blue-100 text-blue-700";
+      return "bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20";
     case "Canceled":
     case "Error":
-      return "bg-red-100 text-red-700";
+      return "bg-red-500/10 text-red-400 ring-1 ring-red-500/20";
     default:
-      return "bg-gray-100 text-gray-700";
+      return "bg-navy-800 text-navy-300 ring-1 ring-navy-700";
   }
 }
 
