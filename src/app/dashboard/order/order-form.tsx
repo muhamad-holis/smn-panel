@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatIDR, calcCharge } from "@/lib/utils";
-import { RefreshCw, CheckCircle2, XCircle, Tag } from "lucide-react";
+import { RefreshCw, CheckCircle2, XCircle, Tag, Search, ChevronDown } from "lucide-react";
 
 type Service = {
   id: number;
@@ -36,12 +36,33 @@ export default function OrderForm({
   const categories = Object.keys(grouped);
 
   const [category, setCategory] = useState<string>(defaultService?.category || categories[0] || "");
+  const [categoryQuery, setCategoryQuery] = useState<string>(category);
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const categoryBoxRef = useRef<HTMLDivElement>(null);
   const [serviceId, setServiceId] = useState<number | "">(defaultService?.id ?? "");
   const [link, setLink] = useState("");
   const [quantity, setQuantity] = useState<number>(defaultService?.min_order ?? 100);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const filteredCategories = useMemo(() => {
+    const q = categoryQuery.trim().toLowerCase();
+    if (!q) return categories;
+    return categories.filter((cat) => cat.toLowerCase().includes(q));
+  }, [categories, categoryQuery]);
+
+  // Tutup dropdown kategori kalau user klik di luar area combobox
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (categoryBoxRef.current && !categoryBoxRef.current.contains(e.target as Node)) {
+        setCategoryOpen(false);
+        setCategoryQuery(category);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [category]);
 
   const servicesInCategory = grouped[category] || [];
   const selected = services.find((s) => s.id === serviceId);
@@ -52,6 +73,8 @@ export default function OrderForm({
 
   function handleCategoryChange(newCategory: string) {
     setCategory(newCategory);
+    setCategoryQuery(newCategory);
+    setCategoryOpen(false);
     const firstInCategory = grouped[newCategory]?.[0];
     setServiceId(firstInCategory?.id ?? "");
     setQuantity(firstInCategory?.min_order ?? 100);
@@ -100,15 +123,49 @@ export default function OrderForm({
       {error && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>}
       {success && <div className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-600">{success}</div>}
 
-      <div>
+      <div ref={categoryBoxRef} className="relative">
         <label className="mb-1.5 block text-sm font-medium text-gray-700">Kategori</label>
-        <select className="input" value={category} onChange={(e) => handleCategoryChange(e.target.value)}>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat} ({grouped[cat].length})
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            className="input pl-9 pr-9"
+            placeholder="Ketik untuk cari kategori, mis. tiktok, instagram..."
+            value={categoryQuery}
+            onFocus={() => {
+              setCategoryOpen(true);
+              setCategoryQuery("");
+            }}
+            onChange={(e) => {
+              setCategoryQuery(e.target.value);
+              setCategoryOpen(true);
+            }}
+          />
+          <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        </div>
+
+        {categoryOpen && (
+          <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+            {filteredCategories.length === 0 ? (
+              <p className="px-3 py-2 text-sm text-gray-400">Kategori tidak ditemukan.</p>
+            ) : (
+              filteredCategories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleCategoryChange(cat)}
+                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-gray-50 ${
+                    cat === category ? "bg-brand-50 font-medium text-brand-600" : "text-gray-700"
+                  }`}
+                >
+                  <span>{cat}</span>
+                  <span className="text-xs text-gray-400">{grouped[cat].length}</span>
+                </button>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       <div>
