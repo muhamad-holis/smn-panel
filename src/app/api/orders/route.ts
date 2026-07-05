@@ -116,6 +116,38 @@ export async function POST(req: NextRequest) {
       })
       .eq("id", order.id);
 
+    // Komisi afiliasi: kalau akun ini didaftarkan lewat link referral, kreditkan komisi ke referrer.
+    // Dibungkus try/catch supaya kegagalan di sini tidak menggagalkan order yang sudah berhasil dibuat.
+    try {
+      const { data: profileRow } = await admin
+        .from("profiles")
+        .select("referred_by")
+        .eq("id", user.id)
+        .single();
+
+      if (profileRow?.referred_by) {
+        const { data: settingRow } = await admin
+          .from("app_settings")
+          .select("value")
+          .eq("key", "affiliate_commission_percent")
+          .single();
+
+        const percent = Number(settingRow?.value ?? 5);
+        const commission = Math.floor((charge * percent) / 100);
+
+        if (commission > 0) {
+          await admin.rpc("credit_affiliate_commission", {
+            p_referrer_id: profileRow.referred_by,
+            p_referred_user_id: user.id,
+            p_order_id: order.id,
+            p_amount: commission,
+          });
+        }
+      }
+    } catch (commissionError) {
+      console.error("Gagal memproses komisi afiliasi:", commissionError);
+    }
+
     return NextResponse.json({ order: { ...order, provider_order_id: result.order, status: "Processing" } });
   } catch (e: any) {
     await admin.rpc("adjust_balance", {

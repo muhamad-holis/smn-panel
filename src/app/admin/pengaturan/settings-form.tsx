@@ -7,15 +7,18 @@ export default function GlobalSettingsForm({
   defaultMarkup,
   usdToIdrRate,
   providerBalanceWarning,
+  affiliateCommissionPercent,
 }: {
   defaultMarkup: string;
   usdToIdrRate: string;
   providerBalanceWarning: string;
+  affiliateCommissionPercent: string;
 }) {
   const router = useRouter();
   const [markup, setMarkup] = useState(defaultMarkup);
   const [rate, setRate] = useState(usdToIdrRate);
   const [warning, setWarning] = useState(providerBalanceWarning);
+  const [commissionPercent, setCommissionPercent] = useState(affiliateCommissionPercent);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
@@ -27,6 +30,7 @@ export default function GlobalSettingsForm({
         default_markup_percent: markup,
         usd_to_idr_rate: rate,
         provider_balance_warning_idr: warning,
+        affiliate_commission_percent: commissionPercent,
       }),
     });
     setSaving(false);
@@ -58,6 +62,17 @@ export default function GlobalSettingsForm({
           </label>
           <input className="input" value={warning} onChange={(e) => setWarning(e.target.value)} />
           <p className="mt-1 text-xs text-navy-500">Muncul peringatan di dashboard admin kalau saldo di bawah ini.</p>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-navy-200">Komisi Afiliasi (%)</label>
+          <input
+            className="input"
+            value={commissionPercent}
+            onChange={(e) => setCommissionPercent(e.target.value)}
+          />
+          <p className="mt-1 text-xs text-navy-500">
+            Persentase dari nilai order yang dikreditkan ke saldo referrer.
+          </p>
         </div>
         <div className="flex items-end">
           <button onClick={handleSave} disabled={saving} className="btn-primary w-full">

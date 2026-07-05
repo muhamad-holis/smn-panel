@@ -17,11 +17,25 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
+-- Helper function: cek apakah user yang login adalah admin.
+-- security definer supaya query di dalamnya bypass RLS (menghindari infinite recursion
+-- kalau dipakai di policy tabel profiles sendiri).
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select coalesce(
+    (select role = 'admin' from public.profiles where id = auth.uid()),
+    false
+  );
+$$;
+
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own" on public.profiles
-  for select using (auth.uid() = id or exists (
-    select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'
-  ));
+  for select using (auth.uid() = id or public.is_admin());
 
 drop policy if exists "profiles_update_own" on public.profiles;
 create policy "profiles_update_own" on public.profiles
@@ -72,9 +86,7 @@ create policy "services_select_all" on public.services
 
 drop policy if exists "services_admin_write" on public.services;
 create policy "services_admin_write" on public.services
-  for all using (exists (
-    select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'
-  ));
+  for all using (public.is_admin());
 
 -- ---------------------------------------------------------------------
 -- 3. ORDERS
@@ -105,9 +117,7 @@ alter table public.orders enable row level security;
 
 drop policy if exists "orders_select_own" on public.orders;
 create policy "orders_select_own" on public.orders
-  for select using (auth.uid() = user_id or exists (
-    select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'
-  ));
+  for select using (auth.uid() = user_id or public.is_admin());
 
 drop policy if exists "orders_insert_own" on public.orders;
 create policy "orders_insert_own" on public.orders
@@ -133,9 +143,7 @@ alter table public.transactions enable row level security;
 
 drop policy if exists "transactions_select_own" on public.transactions;
 create policy "transactions_select_own" on public.transactions
-  for select using (auth.uid() = user_id or exists (
-    select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'
-  ));
+  for select using (auth.uid() = user_id or public.is_admin());
 
 -- ---------------------------------------------------------------------
 -- 5. TOPUPS (invoice payment gateway)
@@ -161,9 +169,7 @@ alter table public.topups enable row level security;
 
 drop policy if exists "topups_select_own" on public.topups;
 create policy "topups_select_own" on public.topups
-  for select using (auth.uid() = user_id or exists (
-    select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'
-  ));
+  for select using (auth.uid() = user_id or public.is_admin());
 
 drop policy if exists "topups_insert_own" on public.topups;
 create policy "topups_insert_own" on public.topups
@@ -186,9 +192,7 @@ create policy "settings_select_all" on public.app_settings
 
 drop policy if exists "settings_admin_write" on public.app_settings;
 create policy "settings_admin_write" on public.app_settings
-  for all using (exists (
-    select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'
-  ));
+  for all using (public.is_admin());
 
 insert into public.app_settings (key, value)
 values ('default_markup_percent', '30')
@@ -203,7 +207,85 @@ values ('provider_balance_warning_idr', '100000')
 on conflict (key) do nothing;
 
 -- ---------------------------------------------------------------------
--- 7. RPC: potong / tambah saldo secara atomik
+-- 7. AFILIASI / REFERRAL
+-- ---------------------------------------------------------------------
+alter table public.profiles add column if not exists referred_by uuid references public.profiles(id);
+
+create table if not exists public.affiliate_commissions (
+  id bigserial primary key,
+  referrer_id uuid not null references public.profiles(id) on delete cascade,
+  referred_user_id uuid not null references public.profiles(id) on delete cascade,
+  order_id bigint references public.orders(id) on delete set null,
+  amount numeric(14,2) not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_affiliate_commissions_referrer on public.affiliate_commissions(referrer_id);
+
+alter table public.affiliate_commissions enable row level security;
+
+drop policy if exists "affiliate_commissions_select_own" on public.affiliate_commissions;
+create policy "affiliate_commissions_select_own" on public.affiliate_commissions
+  for select using (auth.uid() = referrer_id or public.is_admin());
+
+insert into public.app_settings (key, value)
+values ('affiliate_commission_percent', '5')
+on conflict (key) do nothing;
+
+-- Update handle_new_user supaya menautkan referred_by dari ref_code (8 karakter awal UUID referrer),
+-- dikirim lewat raw_user_meta_data saat signUp supaya tetap tersimpan walau email konfirmasi belum diklik.
+create or replace function public.handle_new_user()
+returns trigger as $$
+declare
+  v_ref_code text;
+  v_referrer_id uuid;
+begin
+  insert into public.profiles (id, email, full_name)
+  values (new.id, new.email, coalesce(new.raw_user_meta_data->>'full_name', new.email));
+
+  v_ref_code := new.raw_user_meta_data->>'ref_code';
+  if v_ref_code is not null and length(v_ref_code) >= 6 then
+    select id into v_referrer_id
+    from public.profiles
+    where id::text like v_ref_code || '%' and id <> new.id
+    limit 1;
+
+    if v_referrer_id is not null then
+      update public.profiles set referred_by = v_referrer_id where id = new.id;
+    end if;
+  end if;
+
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- RPC: kreditkan komisi afiliasi ke saldo referrer + catat riwayatnya, dipanggil dari server saat order berhasil
+create or replace function public.credit_affiliate_commission(
+  p_referrer_id uuid,
+  p_referred_user_id uuid,
+  p_order_id bigint,
+  p_amount numeric
+) returns void as $$
+begin
+  if p_amount is null or p_amount <= 0 then
+    return;
+  end if;
+
+  perform public.adjust_balance(
+    p_referrer_id,
+    p_amount,
+    'adjustment',
+    concat('order:', p_order_id),
+    'Komisi afiliasi dari referral'
+  );
+
+  insert into public.affiliate_commissions (referrer_id, referred_user_id, order_id, amount)
+  values (p_referrer_id, p_referred_user_id, p_order_id, p_amount);
+end;
+$$ language plpgsql security definer;
+
+-- ---------------------------------------------------------------------
+-- 8. RPC: potong / tambah saldo secara atomik
 -- ---------------------------------------------------------------------
 create or replace function public.adjust_balance(
   p_user_id uuid,

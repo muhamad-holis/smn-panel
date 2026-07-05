@@ -16,7 +16,12 @@ export default async function AdminPengaturanPage() {
   const { data: settings } = await admin
     .from("app_settings")
     .select("key, value")
-    .in("key", ["default_markup_percent", "usd_to_idr_rate", "provider_balance_warning_idr"]);
+    .in("key", [
+      "default_markup_percent",
+      "usd_to_idr_rate",
+      "provider_balance_warning_idr",
+      "affiliate_commission_percent",
+    ]);
 
   const settingsMap = Object.fromEntries((settings || []).map((s) => [s.key, s.value]));
 
@@ -31,6 +36,7 @@ export default async function AdminPengaturanPage() {
         defaultMarkup={settingsMap.default_markup_percent || "30"}
         usdToIdrRate={settingsMap.usd_to_idr_rate || "16000"}
         providerBalanceWarning={settingsMap.provider_balance_warning_idr || "100000"}
+        affiliateCommissionPercent={settingsMap.affiliate_commission_percent || "5"}
       />
 
       <div className="card">

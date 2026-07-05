@@ -13,7 +13,6 @@ import {
   Wallet,
   Receipt,
   Users,
-  Code2,
   Settings,
   LifeBuoy,
   Shield,
@@ -32,7 +31,6 @@ const links = [
   { href: "/dashboard/topup", label: "Deposit", icon: Wallet },
   { href: "/dashboard/transaksi", label: "Riwayat Transaksi", icon: Receipt },
   { href: "/dashboard/afiliasi", label: "Afiliasi", icon: Users },
-  { href: "/dashboard/api", label: "API", icon: Code2 },
   { href: "/dashboard/profil", label: "Pengaturan", icon: Settings },
   { href: "/dashboard/support", label: "Support", icon: LifeBuoy, badge: "Baru" },
 ];
