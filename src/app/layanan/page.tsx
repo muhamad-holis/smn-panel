@@ -19,13 +19,13 @@ export default async function LayananPage() {
   }, {});
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
+    <main className="mx-auto min-h-screen max-w-5xl bg-gray-50 px-6 py-10">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <Link href="/" className="text-sm text-brand-400 hover:underline">
+          <Link href="/" className="text-sm text-brand-600 hover:underline">
             ← Kembali
           </Link>
-          <h1 className="mt-2 text-2xl font-bold text-white">Daftar Harga Layanan</h1>
+          <h1 className="mt-2 text-2xl font-bold text-gray-900">Daftar Harga Layanan</h1>
         </div>
         <Link href="/register" className="btn-primary">
           Daftar &amp; Order
@@ -33,15 +33,15 @@ export default async function LayananPage() {
       </div>
 
       {Object.keys(grouped).length === 0 && (
-        <p className="text-navy-400">Belum ada layanan tersedia. Silakan cek kembali nanti.</p>
+        <p className="text-gray-400">Belum ada layanan tersedia. Silakan cek kembali nanti.</p>
       )}
 
       {Object.entries(grouped).map(([category, list]) => (
         <div key={category} className="mb-8">
-          <h2 className="mb-3 text-lg font-semibold text-white">{category}</h2>
-          <div className="overflow-hidden rounded-xl border border-navy-800 bg-navy-900">
+          <h2 className="mb-3 text-lg font-semibold text-gray-900">{category}</h2>
+          <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
             <table className="w-full text-sm">
-              <thead className="bg-navy-800/60 text-left text-xs uppercase text-navy-400">
+              <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
                 <tr>
                   <th className="px-4 py-3">Layanan</th>
                   <th className="px-4 py-3">Harga / 1000</th>
@@ -50,18 +50,18 @@ export default async function LayananPage() {
                   <th className="px-4 py-3">Refill</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-navy-800">
+              <tbody className="divide-y divide-gray-100">
                 {list!.map((s) => (
                   <tr key={s.id}>
-                    <td className="px-4 py-3 font-medium text-white">{s.name}</td>
-                    <td className="px-4 py-3 font-semibold text-brand-400">{formatIDR(s.sell_rate)}</td>
-                    <td className="px-4 py-3 text-navy-400">{s.min_order}</td>
-                    <td className="px-4 py-3 text-navy-400">{s.max_order}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">{s.name}</td>
+                    <td className="px-4 py-3 font-semibold text-brand-600">{formatIDR(s.sell_rate)}</td>
+                    <td className="px-4 py-3 text-gray-500">{s.min_order}</td>
+                    <td className="px-4 py-3 text-gray-500">{s.max_order}</td>
                     <td className="px-4 py-3">
                       {s.refill ? (
-                        <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-400">Ya</span>
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-600">Ya</span>
                       ) : (
-                        <span className="rounded-full bg-navy-800 px-2 py-0.5 text-xs text-navy-400">Tidak</span>
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">Tidak</span>
                       )}
                     </td>
                   </tr>

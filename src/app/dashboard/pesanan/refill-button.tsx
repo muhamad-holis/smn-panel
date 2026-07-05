@@ -25,7 +25,7 @@ export default function RefillButton({ orderId }: { orderId: number }) {
     <button
       onClick={handleRefill}
       disabled={loading}
-      className="rounded-md border border-brand-500/50 px-2.5 py-1 text-xs font-medium text-brand-400 hover:bg-brand-500/10 disabled:opacity-50"
+      className="rounded-lg border border-brand-200 px-2.5 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50 disabled:opacity-50"
     >
       {loading ? "..." : "Refill"}
     </button>

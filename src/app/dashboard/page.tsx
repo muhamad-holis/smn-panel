@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { formatIDR, formatDate, statusBadgeClass } from "@/lib/utils";
+import { formatIDR, formatDate, statusBadgeClass, statusLabel, orderCode, percentChange } from "@/lib/utils";
+import PlatformIcon from "@/components/platform-icon";
 import OrdersLineChart from "./charts/orders-line-chart";
 import OrderStatusDonut from "./charts/status-donut-chart";
 import {
@@ -44,11 +45,48 @@ export default async function DashboardOverview() {
 
   const allOrders = orders || [];
 
+  const now = new Date();
+  const startThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+  const inThisMonth = (d: string) => new Date(d) >= startThisMonth;
+  const inLastMonth = (d: string) => new Date(d) >= startLastMonth && new Date(d) < startThisMonth;
+
   const totalOrders = allOrders.length;
   const completedOrders = allOrders.filter((o) => o.status === "Completed").length;
   const pendingOrders = allOrders.filter((o) =>
     ["Pending", "Processing", "In progress"].includes(o.status)
   ).length;
+
+  const totalThisMonth = allOrders.filter((o) => inThisMonth(o.created_at)).length;
+  const totalLastMonth = allOrders.filter((o) => inLastMonth(o.created_at)).length;
+  const completedThisMonth = allOrders.filter((o) => o.status === "Completed" && inThisMonth(o.created_at)).length;
+  const completedLastMonth = allOrders.filter((o) => o.status === "Completed" && inLastMonth(o.created_at)).length;
+  const pendingThisMonth = allOrders.filter(
+    (o) => ["Pending", "Processing", "In progress"].includes(o.status) && inThisMonth(o.created_at)
+  ).length;
+  const pendingLastMonth = allOrders.filter(
+    (o) => ["Pending", "Processing", "In progress"].includes(o.status) && inLastMonth(o.created_at)
+  ).length;
+
+  // Saldo masuk (topup) bulan ini vs bulan lalu, dipakai sebagai indikator tren saldo
+  const { data: topups } = await supabase
+    .from("topups")
+    .select("final_amount, created_at")
+    .eq("user_id", user!.id)
+    .eq("status", "paid")
+    .gte("created_at", startLastMonth.toISOString());
+  const topupThisMonth = (topups || [])
+    .filter((t) => inThisMonth(t.created_at))
+    .reduce((sum, t) => sum + Number(t.final_amount), 0);
+  const topupLastMonth = (topups || [])
+    .filter((t) => inLastMonth(t.created_at))
+    .reduce((sum, t) => sum + Number(t.final_amount), 0);
+
+  const deltaOrders = percentChange(totalThisMonth, totalLastMonth);
+  const deltaCompleted = percentChange(completedThisMonth, completedLastMonth);
+  const deltaPending = percentChange(pendingThisMonth, pendingLastMonth);
+  const deltaBalance = percentChange(topupThisMonth, topupLastMonth);
 
   // Data grafik garis: jumlah order per hari, 7 hari terakhir
   const dayLabels: { key: string; day: string }[] = [];
@@ -82,30 +120,44 @@ export default async function DashboardOverview() {
 
   const recentOrders = allOrders.slice(0, 5);
 
+  function deltaText(delta: number | null) {
+    if (delta === null) return "Belum ada data bulan lalu";
+    const sign = delta >= 0 ? "+" : "";
+    return `${sign}${delta}% dari bulan lalu`;
+  }
+  function deltaColor(delta: number | null) {
+    if (delta === null) return "text-gray-400";
+    return delta >= 0 ? "text-green-600" : "text-red-500";
+  }
+
   const stats = [
     {
       label: "Total Saldo",
       value: formatIDR(profile?.balance || 0),
       icon: Wallet,
-      color: "from-brand-500 to-purple-500",
+      bg: "bg-brand-500",
+      delta: deltaBalance,
     },
     {
       label: "Total Order",
       value: totalOrders.toLocaleString("id-ID"),
       icon: ShoppingCart,
-      color: "from-blue-500 to-blue-400",
+      bg: "bg-blue-500",
+      delta: deltaOrders,
     },
     {
       label: "Order Selesai",
       value: completedOrders.toLocaleString("id-ID"),
       icon: CheckCircle2,
-      color: "from-green-500 to-emerald-400",
+      bg: "bg-green-500",
+      delta: deltaCompleted,
     },
     {
       label: "Order Pending",
       value: pendingOrders.toLocaleString("id-ID"),
       icon: Clock,
-      color: "from-amber-500 to-orange-400",
+      bg: "bg-orange-500",
+      delta: deltaPending,
     },
   ];
 
@@ -122,13 +174,12 @@ export default async function DashboardOverview() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="card">
-            <div
-              className={`mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br ${s.color} text-white`}
-            >
+            <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-2xl ${s.bg} text-white`}>
               <s.icon size={18} />
             </div>
             <p className="text-xs text-gray-500">{s.label}</p>
             <p className="mt-0.5 text-lg font-bold text-gray-900 sm:text-xl">{s.value}</p>
+            <p className={`mt-1 text-[11px] font-medium ${deltaColor(s.delta)}`}>{deltaText(s.delta)}</p>
           </div>
         ))}
       </div>
@@ -136,8 +187,10 @@ export default async function DashboardOverview() {
       {/* Charts */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="card lg:col-span-2">
-          <h2 className="mb-1 font-semibold text-gray-900">Statistik Order</h2>
-          <p className="mb-2 text-xs text-gray-400">7 hari terakhir</p>
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="font-semibold text-gray-900">Statistik Order</h2>
+            <span className="rounded-xl border border-gray-100 px-3 py-1 text-xs text-gray-500">7 Hari Terakhir</span>
+          </div>
           <OrdersLineChart data={lineData} />
         </div>
         <div className="card">
@@ -149,18 +202,27 @@ export default async function DashboardOverview() {
       {/* Layanan terlaris & Recent order */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="card">
-          <h2 className="mb-4 font-semibold text-gray-900">Layanan Terlaris Kamu</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-semibold text-gray-900">Layanan Terlaris</h2>
+            <Link href="/dashboard/layanan" className="text-sm font-medium text-brand-600 hover:underline">
+              Lihat Semua
+            </Link>
+          </div>
           {topServices.length === 0 ? (
             <p className="py-6 text-center text-sm text-gray-400">Belum ada order.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {topServices.map(([name, qty], i) => (
                 <div key={name} className="flex items-center gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-xs font-semibold text-brand-600">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-xs font-semibold text-brand-600">
                     {i + 1}
                   </span>
+                  <PlatformIcon name={name} size="sm" />
                   <p className="flex-1 truncate text-sm font-medium text-gray-800">{name}</p>
-                  <span className="text-xs font-semibold text-gray-500">{qty.toLocaleString("id-ID")}</span>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-400">Terjual</p>
+                    <p className="text-xs font-semibold text-gray-700">{qty.toLocaleString("id-ID")}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -169,23 +231,26 @@ export default async function DashboardOverview() {
 
         <div className="card">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900">Order Terbaru</h2>
+            <h2 className="font-semibold text-gray-900">Recent Order</h2>
             <Link href="/dashboard/pesanan" className="text-sm font-medium text-brand-600 hover:underline">
-              Lihat semua
+              Lihat Semua
             </Link>
           </div>
           {recentOrders.length === 0 ? (
             <p className="py-6 text-center text-sm text-gray-400">Belum ada order.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {recentOrders.map((o: any) => (
-                <div key={o.id} className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
+                <div key={o.id} className="flex items-center gap-3">
+                  <PlatformIcon name={o.services?.name} size="sm" />
+                  <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-gray-800">{o.services?.name}</p>
-                    <p className="text-xs text-gray-400">{formatDate(o.created_at)}</p>
+                    <p className="text-xs text-gray-400">
+                      {orderCode(o.id)} · {formatDate(o.created_at)}
+                    </p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${statusBadgeClass(o.status)}`}>
-                    {o.status}
+                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${statusBadgeClass(o.status)}`}>
+                    {statusLabel(o.status)}
                   </span>
                 </div>
               ))}
@@ -206,15 +271,10 @@ export default async function DashboardOverview() {
             <PlusCircle className="text-green-500" size={20} />
             <span className="text-sm font-medium text-gray-800">Tambah Saldo</span>
           </Link>
-          <a
-            href="https://wa.me/"
-            target="_blank"
-            rel="noreferrer"
-            className="card flex items-center gap-3 hover:shadow-md"
-          >
+          <Link href="/dashboard/support" className="card flex items-center gap-3 hover:shadow-md">
             <MessageCircleQuestion className="text-blue-500" size={20} />
             <span className="text-sm font-medium text-gray-800">Bantuan</span>
-          </a>
+          </Link>
         </div>
       </div>
 

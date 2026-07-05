@@ -17,11 +17,19 @@ type Service = {
   description: string | null;
 };
 
-export default function OrderForm({ services }: { services: Service[] }) {
+export default function OrderForm({
+  services,
+  initialServiceId,
+}: {
+  services: Service[];
+  initialServiceId?: number;
+}) {
   const router = useRouter();
-  const [serviceId, setServiceId] = useState<number | "">(services[0]?.id ?? "");
+  const defaultService =
+    (initialServiceId && services.find((s) => s.id === initialServiceId)) || services[0];
+  const [serviceId, setServiceId] = useState<number | "">(defaultService?.id ?? "");
   const [link, setLink] = useState("");
-  const [quantity, setQuantity] = useState<number>(services[0]?.min_order ?? 100);
+  const [quantity, setQuantity] = useState<number>(defaultService?.min_order ?? 100);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -73,18 +81,18 @@ export default function OrderForm({ services }: { services: Service[] }) {
   }
 
   if (services.length === 0) {
-    return <p className="card text-sm text-navy-400">Belum ada layanan tersedia saat ini.</p>;
+    return <p className="card text-sm text-gray-400">Belum ada layanan tersedia saat ini.</p>;
   }
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
       {/* Form order */}
       <form onSubmit={handleSubmit} className="card space-y-4 lg:col-span-3">
-        {error && <div className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>}
-        {success && <div className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">{success}</div>}
+        {error && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>}
+        {success && <div className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-600">{success}</div>}
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-navy-200">Layanan</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">Layanan</label>
           <select
             className="input"
             value={serviceId}
@@ -108,7 +116,7 @@ export default function OrderForm({ services }: { services: Service[] }) {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-navy-200">Link Tujuan</label>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">Link Tujuan</label>
           <input
             type="text"
             className="input"
@@ -119,10 +127,10 @@ export default function OrderForm({ services }: { services: Service[] }) {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-navy-200">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Jumlah{" "}
             {selected && (
-              <span className="font-normal text-navy-500">
+              <span className="font-normal text-gray-400">
                 (min {selected.min_order}, maks {selected.max_order})
               </span>
             )}
@@ -167,9 +175,9 @@ export default function OrderForm({ services }: { services: Service[] }) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between rounded-lg bg-navy-800/60 px-4 py-3">
-          <span className="text-sm text-navy-300">Estimasi Biaya</span>
-          <span className="text-lg font-bold text-brand-400">{formatIDR(estimate)}</span>
+        <div className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3">
+          <span className="text-sm text-gray-500">Estimasi Biaya</span>
+          <span className="text-lg font-bold text-brand-600">{formatIDR(estimate)}</span>
         </div>
 
         <button type="submit" disabled={loading} className="btn-primary w-full">
@@ -186,30 +194,30 @@ export default function OrderForm({ services }: { services: Service[] }) {
                 <Tag size={13} />
                 {selected.category}
               </p>
-              <h3 className="mt-1 font-semibold text-white">{selected.name}</h3>
+              <h3 className="mt-1 font-semibold text-gray-900">{selected.name}</h3>
             </div>
 
             {selected.description && (
-              <p className="border-t border-navy-800 pt-3 text-sm text-navy-300">{selected.description}</p>
+              <p className="border-t border-gray-100 pt-3 text-sm text-gray-500">{selected.description}</p>
             )}
 
-            <div className="grid grid-cols-2 gap-3 border-t border-navy-800 pt-3 text-sm">
+            <div className="grid grid-cols-2 gap-3 border-t border-gray-100 pt-3 text-sm">
               <div>
-                <p className="text-navy-500">Harga / 1000</p>
-                <p className="font-semibold text-white">{formatIDR(selected.sell_rate)}</p>
+                <p className="text-gray-400">Harga / 1000</p>
+                <p className="font-semibold text-gray-900">{formatIDR(selected.sell_rate)}</p>
               </div>
               <div>
-                <p className="text-navy-500">Min - Maks</p>
-                <p className="font-semibold text-white">
+                <p className="text-gray-400">Min - Maks</p>
+                <p className="font-semibold text-gray-900">
                   {selected.min_order} - {selected.max_order}
                 </p>
               </div>
             </div>
 
-            <div className="flex gap-2 border-t border-navy-800 pt-3">
+            <div className="flex gap-2 border-t border-gray-100 pt-3">
               <span
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                  selected.refill ? "bg-emerald-500/10 text-emerald-400" : "bg-navy-800 text-navy-400"
+                  selected.refill ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-400"
                 }`}
               >
                 <RefreshCw size={12} />
@@ -217,7 +225,7 @@ export default function OrderForm({ services }: { services: Service[] }) {
               </span>
               <span
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                  selected.cancel ? "bg-blue-500/10 text-blue-400" : "bg-navy-800 text-navy-400"
+                  selected.cancel ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-400"
                 }`}
               >
                 {selected.cancel ? <CheckCircle2 size={12} /> : <XCircle size={12} />}

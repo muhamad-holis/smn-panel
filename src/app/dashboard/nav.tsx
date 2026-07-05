@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -7,8 +8,14 @@ import {
   LayoutDashboard,
   ShoppingCart,
   ClipboardList,
+  Layers,
+  Grid3x3,
   Wallet,
-  UserCircle,
+  Receipt,
+  Users,
+  Code2,
+  Settings,
+  LifeBuoy,
   Shield,
   LogOut,
   Menu,
@@ -19,9 +26,15 @@ import { useState } from "react";
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/order", label: "Order Baru", icon: ShoppingCart },
-  { href: "/dashboard/pesanan", label: "Riwayat Order", icon: ClipboardList },
+  { href: "/dashboard/pesanan", label: "Daftar Order", icon: ClipboardList },
+  { href: "/dashboard/layanan", label: "Layanan", icon: Layers },
+  { href: "/dashboard/kategori", label: "Kategori", icon: Grid3x3 },
   { href: "/dashboard/topup", label: "Deposit", icon: Wallet },
-  { href: "/dashboard/profil", label: "Profil & Keamanan", icon: UserCircle },
+  { href: "/dashboard/transaksi", label: "Riwayat Transaksi", icon: Receipt },
+  { href: "/dashboard/afiliasi", label: "Afiliasi", icon: Users },
+  { href: "/dashboard/api", label: "API", icon: Code2 },
+  { href: "/dashboard/profil", label: "Pengaturan", icon: Settings },
+  { href: "/dashboard/support", label: "Support", icon: LifeBuoy, badge: "Baru" },
 ];
 
 export default function DashboardNav({ isAdmin }: { isAdmin: boolean }) {
@@ -51,14 +64,14 @@ export default function DashboardNav({ isAdmin }: { isAdmin: boolean }) {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-gray-100 bg-white transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col overflow-y-auto border-r border-gray-100 bg-white transition-transform lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between px-5 py-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-purple-400 text-sm font-bold text-white shadow-sm">
-              A
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-sm">
+              <Image src="/mascot-placeholder.png" alt="Artholic Studio" fill sizes="36px" />
             </div>
             <div>
               <p className="text-sm font-bold leading-tight tracking-tight text-gray-900">
@@ -83,12 +96,21 @@ export default function DashboardNav({ isAdmin }: { isAdmin: boolean }) {
                 onClick={() => setOpen(false)}
                 className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition ${
                   active
-                    ? "bg-gradient-to-r from-brand-500 to-purple-500 text-white shadow-sm"
+                    ? "bg-gradient-to-r from-brand-500 to-purple-600 text-white shadow-sm"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }`}
               >
                 <Icon size={18} strokeWidth={2} />
-                {link.label}
+                <span className="flex-1">{link.label}</span>
+                {link.badge && (
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                      active ? "bg-white/20 text-white" : "bg-brand-50 text-brand-600"
+                    }`}
+                  >
+                    {link.badge}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -106,14 +128,14 @@ export default function DashboardNav({ isAdmin }: { isAdmin: boolean }) {
         </nav>
 
         <div className="p-3">
-          <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-purple-500 p-4 text-white shadow-sm">
-            <p className="text-sm font-bold">Jadi Reseller</p>
-            <p className="mt-0.5 text-xs text-brand-100">Dapatkan harga khusus reseller</p>
+          <div className="rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600 p-4 text-white shadow-sm">
+            <p className="text-sm font-bold">Jadi Reseller Artholic Studio</p>
+            <p className="mt-0.5 text-xs text-white/80">Dapatkan keuntungan lebih besar dengan harga spesial reseller</p>
             <Link
-              href="/layanan"
+              href="/dashboard/afiliasi"
               className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-white/15 px-3 py-2 text-xs font-semibold backdrop-blur transition hover:bg-white/25"
             >
-              Selengkapnya
+              Daftar Sekarang
             </Link>
           </div>
         </div>

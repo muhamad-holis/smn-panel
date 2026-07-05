@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatIDR } from "@/lib/utils";
 import DashboardNav from "./nav";
-import { Search, Bell, Plus, ChevronDown } from "lucide-react";
+import UserMenu from "./user-menu";
+import { Search, Bell, Plus } from "lucide-react";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
@@ -19,8 +20,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq("id", user.id)
     .single();
 
+  // Dipakai sebagai badge notifikasi lonceng: jumlah order yang masih pending/diproses
+  const { count: pendingCount } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .in("status", ["Pending", "Processing", "In progress"]);
+
   const displayName = profile?.full_name || profile?.email || "";
   const initial = displayName.charAt(0).toUpperCase();
+  const tierLabel = profile?.role === "admin" ? "Admin" : "Member";
 
   return (
     <div className="min-h-screen bg-gray-50 lg:flex">
@@ -44,24 +53,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
                   {formatIDR(profile?.balance || 0)}
                 </p>
               </div>
-              <span className="ml-1 inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-brand-500 to-purple-500 px-2.5 py-1.5 text-xs font-semibold text-white">
+              <span className="ml-1 inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-brand-500 to-purple-600 px-2.5 py-1.5 text-xs font-semibold text-white">
                 <Plus size={13} /> Top Up
               </span>
             </Link>
 
-            <button className="relative rounded-2xl border border-gray-100 p-2.5 text-gray-500 hover:bg-gray-50">
+            <Link
+              href="/dashboard/pesanan"
+              className="relative rounded-2xl border border-gray-100 p-2.5 text-gray-500 hover:bg-gray-50"
+              aria-label="Notifikasi order"
+            >
               <Bell size={18} />
-            </button>
+              {!!pendingCount && pendingCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  {pendingCount > 9 ? "9+" : pendingCount}
+                </span>
+              )}
+            </Link>
 
-            <div className="flex items-center gap-2 rounded-2xl border border-gray-100 py-1.5 pl-1.5 pr-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-purple-400 text-xs font-bold text-white">
-                {initial}
-              </div>
-              <span className="hidden max-w-[100px] truncate text-sm font-medium text-gray-700 md:inline">
-                {displayName}
-              </span>
-              <ChevronDown size={14} className="hidden text-gray-400 md:inline" />
-            </div>
+            <UserMenu displayName={displayName} initial={initial} tierLabel={tierLabel} />
           </div>
         </header>
 
@@ -79,6 +89,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
 
         <main className="p-4 sm:p-6">{children}</main>
+
+        <footer className="border-t border-gray-100 bg-white px-4 py-6 text-center text-xs text-gray-400 sm:px-6">
+          © {new Date().getFullYear()} Artholic Studio. All rights reserved. · Panel SMM Terbaik &amp; Terpercaya di Indonesia
+        </footer>
       </div>
     </div>
   );

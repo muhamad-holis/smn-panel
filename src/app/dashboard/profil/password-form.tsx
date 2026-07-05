@@ -39,12 +39,12 @@ export default function PasswordForm() {
 
   return (
     <div className="space-y-4">
-      {error && <div className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>}
+      {error && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>}
       {success && (
-        <div className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">Password berhasil diubah.</div>
+        <div className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-600">Password berhasil diubah.</div>
       )}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-navy-200">Password Baru</label>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700">Password Baru</label>
         <input
           type="password"
           className="input"
@@ -54,7 +54,7 @@ export default function PasswordForm() {
         />
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-navy-200">Konfirmasi Password Baru</label>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700">Konfirmasi Password Baru</label>
         <input
           type="password"
           className="input"

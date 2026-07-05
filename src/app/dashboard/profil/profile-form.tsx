@@ -37,16 +37,16 @@ export default function ProfileForm({ initialName, email }: { initialName: strin
   return (
     <div className="space-y-4">
       {success && (
-        <div className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">Perubahan disimpan.</div>
+        <div className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-600">Perubahan disimpan.</div>
       )}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-navy-200">Nama Lengkap</label>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700">Nama Lengkap</label>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-navy-200">Email</label>
-        <input className="input bg-navy-800/60 text-navy-400" value={email} disabled />
-        <p className="mt-1 text-xs text-navy-500">Email tidak bisa diubah.</p>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700">Email</label>
+        <input className="input bg-gray-50 text-gray-400" value={email} disabled />
+        <p className="mt-1 text-xs text-gray-400">Email tidak bisa diubah.</p>
       </div>
       <button onClick={handleSave} disabled={saving} className="btn-primary">
         {saving ? "Menyimpan..." : "Simpan Perubahan"}
