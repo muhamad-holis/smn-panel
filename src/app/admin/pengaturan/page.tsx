@@ -39,7 +39,7 @@ export default async function AdminPengaturanPage() {
         affiliateCommissionPercent={settingsMap.affiliate_commission_percent || "5"}
       />
 
-      <div className="card">
+      <div className="card-dark">
         <p className="mb-4 text-sm text-navy-400">
           Harga jual dihitung otomatis dari harga modal provider × markup. Ubah markup per-layanan lalu klik simpan.
         </p>

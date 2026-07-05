@@ -20,6 +20,22 @@ const config: Config = {
           800: "#3b0764",
           900: "#2e0a5e",
         },
+        // Palet gelap untuk admin panel, halaman login & register.
+        // Sebelumnya class navy-* dipakai di banyak file tapi TIDAK terdaftar
+        // di sini, jadi Tailwind diam-diam tidak menghasilkan CSS apa pun untuk
+        // class itu (bg-navy-800/60 dsb jadi transparan/tidak berefek).
+        // Akibatnya judul dengan text-white berakhir di atas background putih
+        // bawaan (bg-gray-50 dari body) -> teks tidak terlihat / kontras rendah.
+        // Definisi ini membuat tema gelap yang sudah dirancang benar-benar aktif.
+        navy: {
+          200: "#c7cbe0",
+          300: "#a3a9c9",
+          400: "#7b82ab",
+          500: "#565d85",
+          700: "#252b47",
+          800: "#171b30",
+          900: "#0e1122",
+        },
       },
       boxShadow: {
         glow: "0 8px 24px -8px rgba(108,58,237,0.35)",

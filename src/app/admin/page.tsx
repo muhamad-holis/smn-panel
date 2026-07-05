@@ -52,7 +52,7 @@ export default async function AdminOverview() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stats.map((s) => (
-          <div key={s.label} className={`card ${s.highlight ? "bg-emerald-500/10 border-emerald-500/30" : ""}`}>
+          <div key={s.label} className={`card-dark ${s.highlight ? "bg-emerald-500/10 border-emerald-500/30" : ""}`}>
             <p className="text-sm text-navy-400">{s.label}</p>
             <p className={`mt-1 text-2xl font-bold ${s.highlight ? "text-emerald-400" : "text-white"}`}>
               {s.value}

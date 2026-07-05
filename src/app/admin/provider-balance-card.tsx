@@ -29,7 +29,7 @@ export default function ProviderBalanceCard({ warningThreshold }: { warningThres
   const isLow = balance !== null && balance < warningThreshold;
 
   return (
-    <div className={`card ${isLow ? "border-red-300 bg-red-500/10" : ""}`}>
+    <div className={`card-dark ${isLow ? "border-red-300 bg-red-500/10" : ""}`}>
       <div className="flex items-center justify-between">
         <p className="text-sm text-navy-400">Saldo Modal di MedanPedia</p>
         <button onClick={fetchBalance} className="text-xs text-brand-400 hover:underline">

@@ -42,7 +42,7 @@ export default function GlobalSettingsForm({
   }
 
   return (
-    <div className="card">
+    <div className="card-dark">
       <h2 className="mb-4 font-semibold text-white">Pengaturan Global</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>

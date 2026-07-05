@@ -26,6 +26,14 @@ body {
   @apply rounded-[20px] border border-gray-100 bg-white p-6 shadow-sm;
 }
 
+/* Varian gelap khusus admin panel. Sebelumnya komponen admin memakai .card
+   (bg-white, dari style dashboard user) tapi teksnya text-white / text-navy-*,
+   sehingga teks jadi tidak kontras di atas kartu putih. .card-dark ini
+   background-nya memang gelap, jadi teks terang di dalamnya kembali terbaca. */
+.card-dark {
+  @apply rounded-[20px] border border-navy-800 bg-navy-900 p-6 shadow-sm;
+}
+
 .qty-btn {
   @apply rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50;
 }
