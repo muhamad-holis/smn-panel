@@ -4,7 +4,7 @@ import { provider } from "@/lib/provider";
 
 /**
  * Sinkronisasi status order yang masih aktif (Pending/Processing/In progress)
- * dengan status terbaru dari provider djuragansosmed.
+ * dengan status terbaru dari provider MedanPedia.
  * Dipanggil oleh /api/cron/sync (Vercel Cron) atau manual oleh admin.
  */
 export async function POST() {

@@ -1,7 +1,7 @@
 # SMM Panel
 
 Website reseller SMM Panel (jual followers/likes/views/comments dsb) — Next.js 14 + Supabase,
-reseller ke provider **djuragansosmed.com**, pembayaran top-up saldo via **BAYAR GG** (QRIS).
+reseller ke provider **medanpedia.co.id**, pembayaran top-up saldo via **BAYAR GG** (QRIS).
 
 ## Fitur
 
@@ -28,9 +28,15 @@ reseller ke provider **djuragansosmed.com**, pembayaran top-up saldo via **BAYAR
    - `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (RAHASIA, jangan expose ke browser)
 
-## 2. Setup API Key Provider (djuragansosmed)
+## 2. Setup API Key Provider (MedanPedia)
 
-Ambil API key dari akun djuragansosmed.com kamu di menu **Account**, isi ke `PROVIDER_API_KEY`.
+1. Daftar/login di [medanpedia.co.id](https://medanpedia.co.id).
+2. Buka [medanpedia.co.id/doc](https://medanpedia.co.id/doc) menu **Kredensial** untuk melihat `API ID` kamu,
+   dan buka halaman **pengaturan akun** untuk melihat `API Key`.
+3. Isi `PROVIDER_API_ID` dan `PROVIDER_API_KEY` di `.env`.
+
+> Catatan: project ini sebelumnya pakai **djuragansosmed.com**. Setelah migrasi ke MedanPedia,
+> fitur **cancel order** tidak tersedia (MedanPedia tidak menyediakan endpoint ini di API mereka).
 
 ## 3. Setup Payment Gateway
 
@@ -75,7 +81,7 @@ Buka `http://localhost:3000`.
 ## 6. Sinkronisasi Layanan Pertama Kali
 
 Setelah login sebagai admin, buka `/admin/pengaturan`, klik **🔄 Sinkron dari Provider**.
-Ini akan menarik semua layanan dari djuragansosmed dan menyimpannya dengan markup default
+Ini akan menarik semua layanan dari MedanPedia dan menyimpannya dengan markup default
 (atur dulu kurs USD→IDR dan markup % di kotak "Pengaturan Global" sebelum sinkron pertama).
 
 ## 7. Deploy ke Vercel
@@ -97,7 +103,7 @@ otomatis mengirim header `Authorization: Bearer $CRON_SECRET` ke endpoint cron k
 ```
 src/
   lib/
-    provider.ts       -> wrapper API djuragansosmed
+    provider.ts       -> wrapper API MedanPedia
     bayarGG.ts         -> wrapper API BAYAR GG
     supabase/          -> client Supabase (browser/server/middleware)
     utils.ts           -> format harga, hitung markup, dsb

@@ -31,7 +31,7 @@ export default function ProviderBalanceCard({ warningThreshold }: { warningThres
   return (
     <div className={`card ${isLow ? "border-red-300 bg-red-500/10" : ""}`}>
       <div className="flex items-center justify-between">
-        <p className="text-sm text-navy-400">Saldo Modal di Djuragansosmed</p>
+        <p className="text-sm text-navy-400">Saldo Modal di MedanPedia</p>
         <button onClick={fetchBalance} className="text-xs text-brand-400 hover:underline">
           🔄 Refresh
         </button>
@@ -49,7 +49,7 @@ export default function ProviderBalanceCard({ warningThreshold }: { warningThres
           {isLow && (
             <p className="mt-2 text-xs font-medium text-red-400">
               ⚠️ Saldo di bawah ambang batas ({formatIDR(warningThreshold)}). Segera top up saldo
-              di dashboard djuragansosmed sebelum kehabisan saat order masuk. Ingat, penarikan dari
+              di dashboard MedanPedia sebelum kehabisan saat order masuk. Ingat, penarikan dari
               cashi.id butuh H-1, jadi jangan tunggu sampai benar-benar habis.
             </p>
           )}
