@@ -3,6 +3,8 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { provider } from "@/lib/provider";
 import { applyMarkup } from "@/lib/utils";
 
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   const supabase = createClient();
   const {
@@ -33,60 +35,71 @@ export async function POST(req: NextRequest) {
     .eq("key", "usd_to_idr_rate")
     .maybeSingle();
   const usdToIdr = Number(rateSetting?.value || process.env.USD_TO_IDR_RATE || 16000);
-
   const conversionRate = accountCurrency === "USD" ? usdToIdr : 1;
 
-  const providerServices = await provider.services();
+  let providerServices;
+  try {
+    providerServices = await provider.services();
+  } catch (e: any) {
+    return NextResponse.json({ error: "Gagal menghubungi provider: " + e.message }, { status: 502 });
+  }
 
   if (!Array.isArray(providerServices)) {
     return NextResponse.json({ error: "Respons provider tidak valid." }, { status: 502 });
   }
 
+  const { data: existingRows, error: fetchError } = await admin
+    .from("services")
+    .select("provider_service_id, markup_percent");
+
+  if (fetchError) {
+    return NextResponse.json({ error: "Gagal membaca layanan existing: " + fetchError.message }, { status: 500 });
+  }
+
+  const existingMap = new Map<number, number>(
+    (existingRows || []).map((r) => [r.provider_service_id, r.markup_percent])
+  );
+
   let created = 0;
   let updated = 0;
 
-  for (const ps of providerServices) {
+  const rows = providerServices.map((ps) => {
     const costRate = Number(ps.rate) * conversionRate;
+    const isExisting = existingMap.has(ps.service);
+    const markupPercent = isExisting ? existingMap.get(ps.service)! : defaultMarkup;
 
-    const { data: existing } = await admin
+    if (isExisting) updated++;
+    else created++;
+
+    return {
+      provider_service_id: ps.service,
+      name: ps.name,
+      category: ps.category,
+      type: ps.type,
+      min_order: Number(ps.min),
+      max_order: Number(ps.max),
+      cost_rate: costRate,
+      sell_rate: applyMarkup(costRate, markupPercent),
+      markup_percent: markupPercent,
+      refill: !!ps.refill,
+      cancel: !!ps.cancel,
+      is_active: true,
+      updated_at: new Date().toISOString(),
+    };
+  });
+
+  const BATCH_SIZE = 300;
+  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+    const batch = rows.slice(i, i + BATCH_SIZE);
+    const { error: upsertError } = await admin
       .from("services")
-      .select("id, markup_percent")
-      .eq("provider_service_id", ps.service)
-      .maybeSingle();
+      .upsert(batch, { onConflict: "provider_service_id" });
 
-    if (existing) {
-      await admin
-        .from("services")
-        .update({
-          name: ps.name,
-          category: ps.category,
-          type: ps.type,
-          min_order: Number(ps.min),
-          max_order: Number(ps.max),
-          cost_rate: costRate,
-          sell_rate: applyMarkup(costRate, existing.markup_percent),
-          refill: !!ps.refill,
-          cancel: !!ps.cancel,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existing.id);
-      updated++;
-    } else {
-      await admin.from("services").insert({
-        provider_service_id: ps.service,
-        name: ps.name,
-        category: ps.category,
-        type: ps.type,
-        min_order: Number(ps.min),
-        max_order: Number(ps.max),
-        cost_rate: costRate,
-        sell_rate: applyMarkup(costRate, defaultMarkup),
-        markup_percent: defaultMarkup,
-        refill: !!ps.refill,
-        cancel: !!ps.cancel,
-        is_active: true,
-      });
-      created++;
+    if (upsertError) {
+      return NextResponse.json(
+        { error: `Gagal menyimpan batch ke-${i / BATCH_SIZE + 1}: ${upsertError.message}` },
+        { status: 500 }
+      );
     }
   }
 
