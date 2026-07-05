@@ -21,21 +21,17 @@ export async function POST(req: NextRequest) {
   const admin = createServiceClient();
   const defaultMarkup = Number(process.env.DEFAULT_MARKUP_PERCENT || 30);
 
-  let accountCurrency = "USD";
-  try {
-    const balanceInfo = await provider.balance();
-    accountCurrency = balanceInfo.currency || "USD";
-  } catch {
-    // default tetap USD kalau gagal cek
-  }
-
-  const { data: rateSetting } = await admin
-    .from("app_settings")
-    .select("value")
-    .eq("key", "usd_to_idr_rate")
-    .maybeSingle();
-  const usdToIdr = Number(rateSetting?.value || process.env.USD_TO_IDR_RATE || 16000);
-  const conversionRate = accountCurrency === "USD" ? usdToIdr : 1;
+  // CATATAN: Provider saat ini (MedanPedia) SELALU melaporkan harga dalam Rupiah
+  // (lihat provider.ts). Sebelumnya kode ini mencoba mendeteksi currency lewat
+  // provider.balance() dan fallback ke "USD" kalau panggilan itu gagal (network
+  // error, timeout, dll). Fallback diam-diam itu menyebabkan rate yang SUDAH
+  // dalam Rupiah dikalikan lagi dengan kurs USD->IDR (mis. x16000), sehingga
+  // nilainya meledak dan melebihi batas kolom numeric(14,4) -> error
+  // "numeric field overflow" saat upsert batch. Karena provider ini dipastikan
+  // IDR-native, konversi dikunci ke 1 tanpa bergantung pada network call yang
+  // rapuh tersebut.
+  const accountCurrency = "IDR";
+  const conversionRate = 1;
 
   let providerServices;
   try {
@@ -63,30 +59,44 @@ export async function POST(req: NextRequest) {
   let created = 0;
   let updated = 0;
 
-  const rows = providerServices.map((ps) => {
-    const costRate = Number(ps.rate) * conversionRate;
-    const isExisting = existingMap.has(ps.service);
-    const markupPercent = isExisting ? existingMap.get(ps.service)! : defaultMarkup;
+  // Batas aman kolom numeric(14,4) di DB: bagian bulat maksimal 10 digit.
+  const MAX_RATE = 9_999_999_999;
+  const skipped: { service: number; name: string; rate: number }[] = [];
 
-    if (isExisting) updated++;
-    else created++;
+  const rows = providerServices
+    .map((ps) => {
+      const costRate = Number(ps.rate) * conversionRate;
+      const isExisting = existingMap.has(ps.service);
+      const markupPercent = isExisting ? existingMap.get(ps.service)! : defaultMarkup;
+      const sellRate = applyMarkup(costRate, markupPercent);
 
-    return {
-      provider_service_id: ps.service,
-      name: ps.name,
-      category: ps.category,
-      type: ps.type,
-      min_order: Number(ps.min),
-      max_order: Number(ps.max),
-      cost_rate: costRate,
-      sell_rate: applyMarkup(costRate, markupPercent),
-      markup_percent: markupPercent,
-      refill: !!ps.refill,
-      cancel: !!ps.cancel,
-      is_active: true,
-      updated_at: new Date().toISOString(),
-    };
-  });
+      // Lewati layanan dengan rate tidak wajar (NaN atau melebihi kapasitas kolom)
+      // supaya satu layanan bermasalah tidak menggagalkan seluruh batch upsert.
+      if (!Number.isFinite(costRate) || !Number.isFinite(sellRate) || costRate > MAX_RATE || sellRate > MAX_RATE) {
+        skipped.push({ service: ps.service, name: ps.name, rate: costRate });
+        return null;
+      }
+
+      if (isExisting) updated++;
+      else created++;
+
+      return {
+        provider_service_id: ps.service,
+        name: ps.name,
+        category: ps.category,
+        type: ps.type,
+        min_order: Number(ps.min),
+        max_order: Number(ps.max),
+        cost_rate: costRate,
+        sell_rate: sellRate,
+        markup_percent: markupPercent,
+        refill: !!ps.refill,
+        cancel: !!ps.cancel,
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      };
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null);
 
   const BATCH_SIZE = 300;
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
@@ -109,5 +119,7 @@ export async function POST(req: NextRequest) {
     total: providerServices.length,
     detected_currency: accountCurrency,
     conversion_applied: conversionRate !== 1,
+    skipped: skipped.length,
+    skipped_services: skipped.slice(0, 20), // contoh maks 20 biar respons tidak membengkak
   });
 }
