@@ -27,6 +27,15 @@ export default function OrderForm({
   const router = useRouter();
   const defaultService =
     (initialServiceId && services.find((s) => s.id === initialServiceId)) || services[0];
+
+  const grouped = services.reduce<Record<string, Service[]>>((acc, s) => {
+    const key = s.category || "Lainnya";
+    (acc[key] ||= []).push(s);
+    return acc;
+  }, {});
+  const categories = Object.keys(grouped);
+
+  const [category, setCategory] = useState<string>(defaultService?.category || categories[0] || "");
   const [serviceId, setServiceId] = useState<number | "">(defaultService?.id ?? "");
   const [link, setLink] = useState("");
   const [quantity, setQuantity] = useState<number>(defaultService?.min_order ?? 100);
@@ -34,17 +43,19 @@ export default function OrderForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const servicesInCategory = grouped[category] || [];
   const selected = services.find((s) => s.id === serviceId);
   const estimate = useMemo(() => {
     if (!selected || !quantity) return 0;
     return calcCharge(selected.sell_rate, quantity);
   }, [selected, quantity]);
 
-  const grouped = services.reduce<Record<string, Service[]>>((acc, s) => {
-    const key = s.category || "Lainnya";
-    (acc[key] ||= []).push(s);
-    return acc;
-  }, {});
+  function handleCategoryChange(newCategory: string) {
+    setCategory(newCategory);
+    const firstInCategory = grouped[newCategory]?.[0];
+    setServiceId(firstInCategory?.id ?? "");
+    setQuantity(firstInCategory?.min_order ?? 100);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -92,6 +103,21 @@ export default function OrderForm({
         {success && <div className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-600">{success}</div>}
 
         <div>
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">Kategori</label>
+          <select
+            className="input"
+            value={category}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+          >
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat} ({grouped[cat].length})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">Layanan</label>
           <select
             className="input"
@@ -103,14 +129,10 @@ export default function OrderForm({
               if (s) setQuantity(s.min_order);
             }}
           >
-            {Object.entries(grouped).map(([category, list]) => (
-              <optgroup key={category} label={category}>
-                {list.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} — {formatIDR(s.sell_rate)}/1000
-                  </option>
-                ))}
-              </optgroup>
+            {servicesInCategory.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} — {formatIDR(s.sell_rate)}/1000
+              </option>
             ))}
           </select>
         </div>
