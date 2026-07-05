@@ -20,26 +20,26 @@ export default function AdminNav() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed left-4 top-4 z-40 rounded-lg bg-navy-900 p-2 text-white shadow-lg lg:hidden"
+        className="fixed left-4 top-4 z-40 rounded-lg bg-white p-2 text-gray-700 shadow-md ring-1 ring-gray-200 lg:hidden"
         aria-label="Buka menu"
       >
         <Menu size={20} />
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setOpen(false)} />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-navy-900 transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-gray-200 bg-white transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between px-5 py-5">
-          <span className="text-lg font-bold tracking-tight text-white">
-            Admin<span className="text-amber-400">.</span>
+          <span className="text-lg font-bold tracking-tight text-gray-900">
+            Admin<span className="text-purple-600">.</span>
           </span>
-          <button onClick={() => setOpen(false)} className="text-navy-300 lg:hidden">
+          <button onClick={() => setOpen(false)} className="text-gray-400 lg:hidden">
             <X size={20} />
           </button>
         </div>
@@ -55,8 +55,8 @@ export default function AdminNav() {
                 onClick={() => setOpen(false)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                   active
-                    ? "bg-amber-500 text-navy-900 shadow-sm"
-                    : "text-navy-200 hover:bg-navy-800 hover:text-white"
+                    ? "bg-purple-50 text-purple-700"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }`}
               >
                 <Icon size={18} strokeWidth={2} />
@@ -66,10 +66,10 @@ export default function AdminNav() {
           })}
         </nav>
 
-        <div className="border-t border-navy-800 p-3">
+        <div className="border-t border-gray-100 p-3">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-navy-200 hover:bg-navy-800 hover:text-white"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
           >
             <ArrowLeftCircle size={18} strokeWidth={2} />
             Kembali ke Dashboard
