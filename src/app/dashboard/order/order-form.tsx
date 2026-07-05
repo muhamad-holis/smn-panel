@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatIDR, calcCharge } from "@/lib/utils";
-import { RefreshCw, CheckCircle2, XCircle, Tag, Search, ChevronDown } from "lucide-react";
+import { RefreshCw, CheckCircle2, XCircle, Tag, Search } from "lucide-react";
 
 type Service = {
   id: number;
@@ -40,6 +40,9 @@ export default function OrderForm({
   const [categoryOpen, setCategoryOpen] = useState(false);
   const categoryBoxRef = useRef<HTMLDivElement>(null);
   const [serviceId, setServiceId] = useState<number | "">(defaultService?.id ?? "");
+  const [serviceQuery, setServiceQuery] = useState<string>(defaultService?.name || "");
+  const [serviceOpen, setServiceOpen] = useState(false);
+  const serviceBoxRef = useRef<HTMLDivElement>(null);
   const [link, setLink] = useState("");
   const [quantity, setQuantity] = useState<number>(defaultService?.min_order ?? 100);
   const [loading, setLoading] = useState(false);
@@ -66,6 +69,25 @@ export default function OrderForm({
 
   const servicesInCategory = grouped[category] || [];
   const selected = services.find((s) => s.id === serviceId);
+
+  const filteredServices = useMemo(() => {
+    const q = serviceQuery.trim().toLowerCase();
+    if (!q) return servicesInCategory;
+    return servicesInCategory.filter((s) => s.name.toLowerCase().includes(q));
+  }, [servicesInCategory, serviceQuery]);
+
+  // Tutup dropdown layanan kalau user klik di luar area combobox
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (serviceBoxRef.current && !serviceBoxRef.current.contains(e.target as Node)) {
+        setServiceOpen(false);
+        setServiceQuery(selected?.name || "");
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [selected]);
+
   const estimate = useMemo(() => {
     if (!selected || !quantity) return 0;
     return calcCharge(selected.sell_rate, quantity);
@@ -77,7 +99,15 @@ export default function OrderForm({
     setCategoryOpen(false);
     const firstInCategory = grouped[newCategory]?.[0];
     setServiceId(firstInCategory?.id ?? "");
+    setServiceQuery(firstInCategory?.name || "");
     setQuantity(firstInCategory?.min_order ?? 100);
+  }
+
+  function handleServiceChange(s: Service) {
+    setServiceId(s.id);
+    setServiceQuery(s.name);
+    setServiceOpen(false);
+    setQuantity(s.min_order);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -126,10 +156,9 @@ export default function OrderForm({
       <div ref={categoryBoxRef} className="relative">
         <label className="mb-1.5 block text-sm font-medium text-gray-700">Kategori</label>
         <div className="relative">
-          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            className="input pl-9 pr-9"
+            className="input pr-9"
             placeholder="Ketik untuk cari kategori, mis. tiktok, instagram..."
             value={categoryQuery}
             onFocus={() => {
@@ -141,7 +170,7 @@ export default function OrderForm({
               setCategoryOpen(true);
             }}
           />
-          <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
         </div>
 
         {categoryOpen && (
@@ -168,24 +197,48 @@ export default function OrderForm({
         )}
       </div>
 
-      <div>
+      <div ref={serviceBoxRef} className="relative">
         <label className="mb-1.5 block text-sm font-medium text-gray-700">Layanan</label>
-        <select
-          className="input"
-          value={serviceId}
-          onChange={(e) => {
-            const id = Number(e.target.value);
-            setServiceId(id);
-            const s = services.find((x) => x.id === id);
-            if (s) setQuantity(s.min_order);
-          }}
-        >
-          {servicesInCategory.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name} — {formatIDR(s.sell_rate)}/1000
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <input
+            type="text"
+            className="input pr-9"
+            placeholder="Ketik untuk cari layanan..."
+            value={serviceQuery}
+            onFocus={() => {
+              setServiceOpen(true);
+              setServiceQuery("");
+            }}
+            onChange={(e) => {
+              setServiceQuery(e.target.value);
+              setServiceOpen(true);
+            }}
+          />
+          <Search size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        </div>
+
+        {serviceOpen && (
+          <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+            {filteredServices.length === 0 ? (
+              <p className="px-3 py-2 text-sm text-gray-400">Layanan tidak ditemukan.</p>
+            ) : (
+              filteredServices.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleServiceChange(s)}
+                  className={`flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-gray-50 ${
+                    s.id === serviceId ? "bg-brand-50 font-medium text-brand-600" : "text-gray-700"
+                  }`}
+                >
+                  <span>{s.name}</span>
+                  <span className="text-xs text-gray-400">{formatIDR(s.sell_rate)}/1000</span>
+                </button>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       {/* Kotak Deskripsi & Info Layanan — tampil begitu layanan dipilih, mengikuti alur MedanPedia */}
