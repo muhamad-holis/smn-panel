@@ -17,10 +17,10 @@ import {
 import { useState } from "react";
 
 const links = [
-  { href: "/dashboard", label: "Ringkasan", icon: LayoutDashboard },
-  { href: "/dashboard/order", label: "Buat Order", icon: ShoppingCart },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/order", label: "Order Baru", icon: ShoppingCart },
   { href: "/dashboard/pesanan", label: "Riwayat Order", icon: ClipboardList },
-  { href: "/dashboard/topup", label: "Top Up Saldo", icon: Wallet },
+  { href: "/dashboard/topup", label: "Deposit", icon: Wallet },
   { href: "/dashboard/profil", label: "Profil & Keamanan", icon: UserCircle },
 ];
 
@@ -40,7 +40,7 @@ export default function DashboardNav({ isAdmin }: { isAdmin: boolean }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed left-4 top-4 z-40 rounded-lg bg-white p-2 text-gray-700 shadow-md ring-1 ring-gray-200 lg:hidden"
+        className="fixed left-4 top-4 z-40 rounded-2xl bg-white p-2 text-gray-700 shadow-md ring-1 ring-gray-100 lg:hidden"
         aria-label="Buka menu"
       >
         <Menu size={20} />
@@ -51,13 +51,21 @@ export default function DashboardNav({ isAdmin }: { isAdmin: boolean }) {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-gray-200 bg-white transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-gray-100 bg-white transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between px-5 py-5">
-          <Link href="/" className="text-lg font-bold tracking-tight text-gray-900">
-            SMM<span className="text-brand-500">Panel</span>
+        <div className="flex items-center justify-between px-5 py-6">
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-purple-400 text-sm font-bold text-white shadow-sm">
+              A
+            </div>
+            <div>
+              <p className="text-sm font-bold leading-tight tracking-tight text-gray-900">
+                ARTHOLIC<span className="text-brand-500"> STUDIO</span>
+              </p>
+              <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400">SMM Panel</p>
+            </div>
           </Link>
           <button onClick={() => setOpen(false)} className="text-gray-400 lg:hidden">
             <X size={20} />
@@ -73,9 +81,9 @@ export default function DashboardNav({ isAdmin }: { isAdmin: boolean }) {
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition ${
                   active
-                    ? "bg-brand-50 text-brand-700"
+                    ? "bg-gradient-to-r from-brand-500 to-purple-500 text-white shadow-sm"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }`}
               >
@@ -89,7 +97,7 @@ export default function DashboardNav({ isAdmin }: { isAdmin: boolean }) {
             <Link
               href="/admin"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-purple-700 hover:bg-purple-50"
+              className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-purple-700 hover:bg-purple-50"
             >
               <Shield size={18} strokeWidth={2} />
               Panel Admin
@@ -97,10 +105,23 @@ export default function DashboardNav({ isAdmin }: { isAdmin: boolean }) {
           )}
         </nav>
 
+        <div className="p-3">
+          <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-purple-500 p-4 text-white shadow-sm">
+            <p className="text-sm font-bold">Jadi Reseller</p>
+            <p className="mt-0.5 text-xs text-brand-100">Dapatkan harga khusus reseller</p>
+            <Link
+              href="/layanan"
+              className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-white/15 px-3 py-2 text-xs font-semibold backdrop-blur transition hover:bg-white/25"
+            >
+              Selengkapnya
+            </Link>
+          </div>
+        </div>
+
         <div className="border-t border-gray-100 p-3">
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50"
+            className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50"
           >
             <LogOut size={18} strokeWidth={2} />
             Keluar

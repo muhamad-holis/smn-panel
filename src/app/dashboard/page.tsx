@@ -1,12 +1,26 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatIDR, formatDate, statusBadgeClass } from "@/lib/utils";
-import { Wallet2, Loader2, Crown, ListOrdered } from "lucide-react";
+import OrdersLineChart from "./charts/orders-line-chart";
+import OrderStatusDonut from "./charts/status-donut-chart";
+import {
+  Wallet,
+  ShoppingCart,
+  CheckCircle2,
+  Clock,
+  ShoppingBag,
+  PlusCircle,
+  MessageCircleQuestion,
+  Sparkles,
+} from "lucide-react";
 
-function levelFor(totalSpend: number) {
-  if (totalSpend >= 1_000_000) return "VIP Member";
-  if (totalSpend >= 250_000) return "Member Aktif";
-  return "Member Baru";
+export const dynamic = "force-dynamic";
+
+function statusGroup(status: string): "Selesai" | "Proses" | "Pending" | "Bermasalah" {
+  if (status === "Completed") return "Selesai";
+  if (status === "Processing" || status === "In progress" || status === "Partial") return "Proses";
+  if (status === "Pending") return "Pending";
+  return "Bermasalah"; // Error, Canceled
 }
 
 export default async function DashboardOverview() {
@@ -15,118 +29,204 @@ export default async function DashboardOverview() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const { data: profile } = await supabase.from("profiles").select("full_name, balance").eq("id", user!.id).single();
+
+  // Ambil order 90 hari terakhir untuk dipakai di semua kartu/grafik/tabel di halaman ini
+  const since = new Date();
+  since.setDate(since.getDate() - 90);
+
   const { data: orders } = await supabase
     .from("orders")
-    .select("id, link, quantity, charge, status, remains, created_at, services(name)")
+    .select("id, quantity, charge, status, created_at, services(name)")
     .eq("user_id", user!.id)
-    .order("created_at", { ascending: false })
-    .limit(6);
+    .gte("created_at", since.toISOString())
+    .order("created_at", { ascending: false });
 
-  const { count: totalOrders } = await supabase
-    .from("orders")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user!.id);
+  const allOrders = orders || [];
 
-  const { count: activeOrders } = await supabase
-    .from("orders")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user!.id)
-    .in("status", ["Pending", "In progress", "Processing"]);
+  const totalOrders = allOrders.length;
+  const completedOrders = allOrders.filter((o) => o.status === "Completed").length;
+  const pendingOrders = allOrders.filter((o) =>
+    ["Pending", "Processing", "In progress"].includes(o.status)
+  ).length;
 
-  const { data: spendRows } = await supabase
-    .from("orders")
-    .select("charge")
-    .eq("user_id", user!.id);
+  // Data grafik garis: jumlah order per hari, 7 hari terakhir
+  const dayLabels: { key: string; day: string }[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dayLabels.push({
+      key: d.toISOString().slice(0, 10),
+      day: d.toLocaleDateString("id-ID", { day: "2-digit", month: "short" }),
+    });
+  }
+  const lineData = dayLabels.map(({ key, day }) => ({
+    day,
+    total: allOrders.filter((o) => o.created_at.slice(0, 10) === key).length,
+  }));
 
-  const totalSpending = (spendRows || []).reduce((sum, r: any) => sum + (r.charge || 0), 0);
-  const level = levelFor(totalSpending);
+  // Data donut: distribusi status
+  const statusCounts: Record<string, number> = { Selesai: 0, Proses: 0, Pending: 0, Bermasalah: 0 };
+  for (const o of allOrders) statusCounts[statusGroup(o.status)]++;
+  const donutData = Object.entries(statusCounts).map(([name, value]) => ({ name, value }));
+
+  // Layanan terlaris (berdasarkan quantity yang pernah dipesan user ini)
+  const serviceTotals = new Map<string, number>();
+  for (const o of allOrders) {
+    const name = (o as any).services?.name || "Layanan";
+    serviceTotals.set(name, (serviceTotals.get(name) || 0) + o.quantity);
+  }
+  const topServices = [...serviceTotals.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const recentOrders = allOrders.slice(0, 5);
+
+  const stats = [
+    {
+      label: "Total Saldo",
+      value: formatIDR(profile?.balance || 0),
+      icon: Wallet,
+      color: "from-brand-500 to-purple-500",
+    },
+    {
+      label: "Total Order",
+      value: totalOrders.toLocaleString("id-ID"),
+      icon: ShoppingCart,
+      color: "from-blue-500 to-blue-400",
+    },
+    {
+      label: "Order Selesai",
+      value: completedOrders.toLocaleString("id-ID"),
+      icon: CheckCircle2,
+      color: "from-green-500 to-emerald-400",
+    },
+    {
+      label: "Order Pending",
+      value: pendingOrders.toLocaleString("id-ID"),
+      icon: Clock,
+      color: "from-amber-500 to-orange-400",
+    },
+  ];
 
   return (
     <div className="space-y-6">
+      <div>
+        <h1 className="text-xl font-bold text-gray-900">
+          Selamat datang kembali, {profile?.full_name?.split(" ")[0] || "kamu"}! 👋
+        </h1>
+        <p className="text-sm text-gray-500">Ini ringkasan aktivitas akun kamu.</p>
+      </div>
+
+      {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="stat-card">
-          <div className="flex items-center gap-2 text-navy-400">
-            <Wallet2 size={16} />
-            <p className="text-xs uppercase tracking-wide">Total Spending</p>
+        {stats.map((s) => (
+          <div key={s.label} className="card">
+            <div
+              className={`mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br ${s.color} text-white`}
+            >
+              <s.icon size={18} />
+            </div>
+            <p className="text-xs text-gray-500">{s.label}</p>
+            <p className="mt-0.5 text-lg font-bold text-gray-900 sm:text-xl">{s.value}</p>
           </div>
-          <p className="mt-2 text-xl font-bold text-white">{formatIDR(totalSpending)}</p>
+        ))}
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="card lg:col-span-2">
+          <h2 className="mb-1 font-semibold text-gray-900">Statistik Order</h2>
+          <p className="mb-2 text-xs text-gray-400">7 hari terakhir</p>
+          <OrdersLineChart data={lineData} />
         </div>
-        <div className="stat-card">
-          <div className="flex items-center gap-2 text-navy-400">
-            <Loader2 size={16} />
-            <p className="text-xs uppercase tracking-wide">Active Orders</p>
-          </div>
-          <p className="mt-2 text-xl font-bold text-white">{activeOrders ?? 0} Pesanan</p>
-        </div>
-        <div className="stat-card">
-          <div className="flex items-center gap-2 text-navy-400">
-            <ListOrdered size={16} />
-            <p className="text-xs uppercase tracking-wide">Total Order</p>
-          </div>
-          <p className="mt-2 text-xl font-bold text-white">{totalOrders ?? 0}</p>
-        </div>
-        <div className="stat-card">
-          <div className="flex items-center gap-2 text-brand-300">
-            <Crown size={16} />
-            <p className="text-xs uppercase tracking-wide">Level</p>
-          </div>
-          <p className="mt-2 text-xl font-bold text-white">{level}</p>
+        <div className="card">
+          <h2 className="mb-4 font-semibold text-gray-900">Status Order</h2>
+          <OrderStatusDonut data={donutData} />
         </div>
       </div>
 
-      <Link
-        href="/dashboard/order"
-        className="card flex items-center justify-between bg-gradient-to-r from-brand-600/30 to-teal-600/20 transition hover:from-brand-600/40 hover:to-teal-600/30"
-      >
-        <div>
-          <p className="font-semibold text-white">+ Buat Order Baru</p>
-          <p className="text-sm text-navy-300">Pilih layanan & mulai order dalam hitungan detik</p>
+      {/* Layanan terlaris & Recent order */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="card">
+          <h2 className="mb-4 font-semibold text-gray-900">Layanan Terlaris Kamu</h2>
+          {topServices.length === 0 ? (
+            <p className="py-6 text-center text-sm text-gray-400">Belum ada order.</p>
+          ) : (
+            <div className="space-y-3">
+              {topServices.map(([name, qty], i) => (
+                <div key={name} className="flex items-center gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-xs font-semibold text-brand-600">
+                    {i + 1}
+                  </span>
+                  <p className="flex-1 truncate text-sm font-medium text-gray-800">{name}</p>
+                  <span className="text-xs font-semibold text-gray-500">{qty.toLocaleString("id-ID")}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <span className="btn-primary hidden sm:inline-flex">Pesan Sekarang</span>
-      </Link>
 
-      <div className="card">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-semibold text-white">Recent Orders Tracking</h2>
-          <Link href="/dashboard/pesanan" className="text-sm text-brand-400 hover:underline">
-            Lihat semua
-          </Link>
-        </div>
-
-        {!orders || orders.length === 0 ? (
-          <p className="py-8 text-center text-sm text-navy-400">Belum ada order.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase text-navy-500">
-                <tr>
-                  <th className="py-2 pr-4">Order ID</th>
-                  <th className="py-2 pr-4">Layanan</th>
-                  <th className="py-2 pr-4">Jumlah</th>
-                  <th className="py-2 pr-4">Sisa</th>
-                  <th className="py-2 pr-4">Harga</th>
-                  <th className="py-2 pr-4">Status</th>
-                  <th className="py-2">Tanggal</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-navy-800">
-                {orders.map((o: any) => (
-                  <tr key={o.id}>
-                    <td className="py-2.5 pr-4 font-medium text-brand-300">#{o.id}</td>
-                    <td className="py-2.5 pr-4 font-medium text-white">{o.services?.name}</td>
-                    <td className="py-2.5 pr-4 text-navy-300">{o.quantity}</td>
-                    <td className="py-2.5 pr-4 text-navy-300">{o.remains ?? "-"}</td>
-                    <td className="py-2.5 pr-4 text-navy-300">{formatIDR(o.charge)}</td>
-                    <td className="py-2.5 pr-4">
-                      <span className={`badge ${statusBadgeClass(o.status)}`}>{o.status}</span>
-                    </td>
-                    <td className="py-2.5 text-navy-400">{formatDate(o.created_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="card">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-semibold text-gray-900">Order Terbaru</h2>
+            <Link href="/dashboard/pesanan" className="text-sm font-medium text-brand-600 hover:underline">
+              Lihat semua
+            </Link>
           </div>
-        )}
+          {recentOrders.length === 0 ? (
+            <p className="py-6 text-center text-sm text-gray-400">Belum ada order.</p>
+          ) : (
+            <div className="space-y-3">
+              {recentOrders.map((o: any) => (
+                <div key={o.id} className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-gray-800">{o.services?.name}</p>
+                    <p className="text-xs text-gray-400">{formatDate(o.created_at)}</p>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${statusBadgeClass(o.status)}`}>
+                    {o.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Quick actions */}
+      <div>
+        <h2 className="mb-3 font-semibold text-gray-900">Aksi Cepat</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <Link href="/dashboard/order" className="card flex items-center gap-3 hover:shadow-md">
+            <ShoppingBag className="text-brand-500" size={20} />
+            <span className="text-sm font-medium text-gray-800">Order Baru</span>
+          </Link>
+          <Link href="/dashboard/topup" className="card flex items-center gap-3 hover:shadow-md">
+            <PlusCircle className="text-green-500" size={20} />
+            <span className="text-sm font-medium text-gray-800">Tambah Saldo</span>
+          </Link>
+          <a
+            href="https://wa.me/"
+            target="_blank"
+            rel="noreferrer"
+            className="card flex items-center gap-3 hover:shadow-md"
+          >
+            <MessageCircleQuestion className="text-blue-500" size={20} />
+            <span className="text-sm font-medium text-gray-800">Bantuan</span>
+          </a>
+        </div>
+      </div>
+
+      {/* Announcement */}
+      <div className="card flex items-start gap-3 bg-gradient-to-br from-brand-50 to-purple-50">
+        <Sparkles className="mt-0.5 shrink-0 text-brand-500" size={20} />
+        <div>
+          <p className="text-sm font-semibold text-gray-900">Selalu ada garansi refill</p>
+          <p className="text-sm text-gray-600">
+            Layanan dengan badge refill otomatis dijamin diisi ulang kalau ada penurunan jumlah.
+          </p>
+        </div>
       </div>
     </div>
   );
