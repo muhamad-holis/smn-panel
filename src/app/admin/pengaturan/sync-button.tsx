@@ -14,7 +14,11 @@ export default function SyncButton() {
     setLoading(false);
 
     if (res.ok) {
-      alert(`Sinkron selesai. ${data.created} layanan baru, ${data.updated} diperbarui.`);
+      alert(
+        `Sinkron selesai. ${data.created} layanan baru, ${data.updated} diperbarui.\n\nMata uang akun terdeteksi: ${data.detected_currency}${
+          data.conversion_applied ? " (dikonversi ke IDR)" : " (dipakai langsung tanpa konversi)"
+        }`
+      );
       router.refresh();
     } else {
       alert(data.error || "Gagal sinkronisasi.");

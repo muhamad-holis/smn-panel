@@ -3,13 +3,6 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { provider } from "@/lib/provider";
 import { applyMarkup } from "@/lib/utils";
 
-/**
- * Sinkronisasi daftar layanan dari provider djuragansosmed ke tabel services.
- * - Layanan baru akan ditambahkan dengan markup_percent = DEFAULT_MARKUP_PERCENT.
- * - Layanan lama akan diupdate cost_rate & sell_rate-nya mengikuti markup yang sudah diset admin
- *   (kalau admin sudah pernah override markup, itu akan dipertahankan).
- * - Hanya boleh dipanggil oleh admin.
- */
 export async function POST(req: NextRequest) {
   const supabase = createClient();
   const {
@@ -26,13 +19,22 @@ export async function POST(req: NextRequest) {
   const admin = createServiceClient();
   const defaultMarkup = Number(process.env.DEFAULT_MARKUP_PERCENT || 30);
 
-  // Provider (djuragansosmed) melaporkan rate dalam USD per 1000 - konversi ke IDR dulu.
+  let accountCurrency = "USD";
+  try {
+    const balanceInfo = await provider.balance();
+    accountCurrency = balanceInfo.currency || "USD";
+  } catch {
+    // default tetap USD kalau gagal cek
+  }
+
   const { data: rateSetting } = await admin
     .from("app_settings")
     .select("value")
     .eq("key", "usd_to_idr_rate")
     .maybeSingle();
   const usdToIdr = Number(rateSetting?.value || process.env.USD_TO_IDR_RATE || 16000);
+
+  const conversionRate = accountCurrency === "USD" ? usdToIdr : 1;
 
   const providerServices = await provider.services();
 
@@ -44,7 +46,7 @@ export async function POST(req: NextRequest) {
   let updated = 0;
 
   for (const ps of providerServices) {
-    const costRate = Number(ps.rate) * usdToIdr;
+    const costRate = Number(ps.rate) * conversionRate;
 
     const { data: existing } = await admin
       .from("services")
@@ -88,5 +90,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ created, updated, total: providerServices.length });
+  return NextResponse.json({
+    created,
+    updated,
+    total: providerServices.length,
+    detected_currency: accountCurrency,
+    conversion_applied: conversionRate !== 1,
+  });
 }
