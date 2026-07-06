@@ -1,15 +1,19 @@
 import { createServiceClient } from "@/lib/supabase/server";
 
 /**
- * Supabase (lewat PostgREST) punya batas default MAKSIMAL 1000 baris per
- * request. Kalau sebuah query .select() tidak diberi .range(), hasil di atas
- * batas itu akan TERPOTONG DIAM-DIAM tanpa error apapun. Karena tabel
- * `services` sudah berisi 1000+ baris, query tanpa pagination menyebabkan
- * sebagian layanan (termasuk beberapa kategori, mis. TikTok) hilang dari
- * tampilan meskipun datanya tersimpan lengkap di database.
+ * Supabase (lewat PostgREST) punya batas MAKSIMAL baris per request (server-side
+ * "max rows" setting). Kalau query .select() tidak diberi .range() sama sekali,
+ * hasil di atas batas itu TERPOTONG DIAM-DIAM tanpa error apapun.
  *
- * Fungsi ini mengambil SEMUA baris dengan membaca per halaman (page) sampai
- * halaman terakhir yang jumlahnya kurang dari PAGE_SIZE.
+ * PENTING: batas itu tetap berlaku SEKALIPUN kita sudah pakai .range() — kalau
+ * kita minta .range(0, 999) (1000 baris) tapi batas asli server cuma 500, PostgREST
+ * cuma akan balikin 500 baris, bukan error. Karena itu, kita TIDAK BOLEH
+ * menyimpulkan "ini halaman terakhir" hanya karena hasil yang balik < ukuran yang
+ * kita minta (PAGE_SIZE) — bisa jadi itu cuma batas asli server yang lebih kecil,
+ * bukan berarti datanya sudah habis. Loop di bawah terus lanjut mengambil halaman
+ * berikutnya berdasarkan JUMLAH BARIS YANG BENAR-BENAR BALIK (bukan asumsi
+ * PAGE_SIZE), dan baru berhenti kalau satu halaman balik BENAR-BENAR KOSONG (0
+ * baris) — supaya aman berapa pun batas asli server-nya.
  */
 const PAGE_SIZE = 1000;
 
@@ -26,6 +30,7 @@ export async function fetchAllServices<T extends Record<string, any>>(
       .from("services")
       .select(columns)
       .order("category", { ascending: true })
+      .order("id", { ascending: true }) // tie-breaker biar urutan antar-halaman stabil & tidak ada baris yang terlewat/dobel
       .range(from, from + PAGE_SIZE - 1);
 
     if (opts.onlyActive) query = query.eq("is_active", true);
@@ -36,8 +41,7 @@ export async function fetchAllServices<T extends Record<string, any>>(
     if (!data || data.length === 0) break;
 
     all.push(...(data as T[]));
-    if (data.length < PAGE_SIZE) break;
-    from += PAGE_SIZE;
+    from += data.length; // maju sesuai jumlah baris yang BENAR-BENAR balik, bukan asumsi PAGE_SIZE
   }
 
   return all;
