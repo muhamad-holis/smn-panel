@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { fetchAllServices } from "@/lib/fetch-all-services";
 import OrderForm from "./order-form";
 
 export default async function OrderPage({
@@ -6,12 +6,10 @@ export default async function OrderPage({
 }: {
   searchParams: { service?: string };
 }) {
-  const supabase = createClient();
-  const { data: services } = await supabase
-    .from("services")
-    .select("id, name, category, sell_rate, min_order, max_order, refill, cancel, description")
-    .eq("is_active", true)
-    .order("category", { ascending: true });
+  const services = await fetchAllServices(
+    "id, name, category, sell_rate, min_order, max_order, refill, cancel, description",
+    { onlyActive: true }
+  );
 
   const initialServiceId = searchParams?.service ? Number(searchParams.service) : undefined;
 

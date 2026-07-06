@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/server";
+import { fetchAllServices } from "@/lib/fetch-all-services";
 import SyncButton from "./sync-button";
 import ServiceRow from "./service-row";
 import GlobalSettingsForm from "./settings-form";
@@ -8,10 +9,9 @@ export const dynamic = "force-dynamic";
 export default async function AdminPengaturanPage() {
   const admin = createServiceClient();
 
-  const { data: services } = await admin
-    .from("services")
-    .select("id, name, category, cost_rate, sell_rate, markup_percent, is_active")
-    .order("category", { ascending: true });
+  const services = await fetchAllServices(
+    "id, name, category, cost_rate, sell_rate, markup_percent, is_active"
+  );
 
   const { data: settings } = await admin
     .from("app_settings")
