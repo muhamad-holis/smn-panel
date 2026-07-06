@@ -49,7 +49,7 @@ export default async function HomePage() {
       <header className="sticky top-0 z-20 border-b border-gray-100 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <span className="font-display text-xl font-extrabold tracking-tight text-gray-900">
-            SMM<span className="text-brand-500">.</span>Panel
+            Artholic<span className="text-brand-500">.</span>Studio
           </span>
           <nav className="flex items-center gap-2 sm:gap-3">
             <Link href="/layanan" className="hidden text-sm font-medium text-gray-500 hover:text-gray-900 sm:block">
@@ -123,7 +123,7 @@ export default async function HomePage() {
                 className="group flex flex-col items-center gap-3 rounded-2xl border border-gray-100 bg-white p-5 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <PlatformIcon name={name} />
-                <div>
+                <div className="w-full min-w-0">
                   <p className="truncate text-sm font-semibold text-gray-900">{name}</p>
                   <p className="text-xs text-gray-400">{count} layanan</p>
                 </div>
@@ -185,7 +185,7 @@ export default async function HomePage() {
               <div key={s.id} className="card flex flex-col gap-3">
                 <div className="flex items-center gap-3">
                   <PlatformIcon name={s.category || s.name} />
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs font-medium uppercase tracking-wide text-brand-500">{s.category}</p>
                     <p className="truncate font-semibold text-gray-900">{s.name}</p>
                   </div>
@@ -215,7 +215,7 @@ export default async function HomePage() {
       </section>
 
       <footer className="border-t border-gray-100 bg-white py-10 text-center text-sm text-gray-400">
-        © {new Date().getFullYear()} SMM Panel. Semua hak dilindungi.
+        © {new Date().getFullYear()} Artholic Studio. Semua hak dilindungi.
       </footer>
     </main>
   );

@@ -7,7 +7,7 @@ const sora = Sora({ subsets: ["latin"], variable: "--font-sora", weight: ["600",
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "SMM Panel - Layanan Sosial Media Termurah",
+  title: "Artholic Studio - Layanan Sosial Media Termurah",
   description: "Panel jasa media sosial: followers, likes, views, comments untuk Instagram, TikTok, YouTube, dan lainnya.",
 };
 
