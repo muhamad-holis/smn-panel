@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -12,17 +12,19 @@ export async function GET(request: Request) {
     const { data } = await supabase.auth.exchangeCodeForSession(code);
     const user = data.user;
 
-    // Kalau daftar via Google bawa kode referral, tautkan manual
-    // (trigger handle_new_user tidak bisa baca ref_code dari OAuth).
     if (user && refCode && refCode.length >= 6) {
-      const { data: profile } = await supabase
+      // Pakai service client di sini supaya bisa baca & tautkan lintas-user,
+      // karena RLS profiles hanya izinkan user lihat baris miliknya sendiri.
+      const admin = createServiceClient();
+
+      const { data: profile } = await admin
         .from("profiles")
         .select("referred_by")
         .eq("id", user.id)
         .single();
 
       if (profile && !profile.referred_by) {
-        const { data: referrer } = await supabase
+        const { data: referrer } = await admin
           .from("profiles")
           .select("id")
           .like("id", `${refCode}%`)
@@ -31,7 +33,7 @@ export async function GET(request: Request) {
           .single();
 
         if (referrer) {
-          await supabase.from("profiles").update({ referred_by: referrer.id }).eq("id", user.id);
+          await admin.from("profiles").update({ referred_by: referrer.id }).eq("id", user.id);
         }
       }
     }
