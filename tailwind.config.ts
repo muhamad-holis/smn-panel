@@ -20,13 +20,6 @@ const config: Config = {
           800: "#3b0764",
           900: "#2e0a5e",
         },
-        // Palet gelap untuk admin panel, halaman login & register.
-        // Sebelumnya class navy-* dipakai di banyak file tapi TIDAK terdaftar
-        // di sini, jadi Tailwind diam-diam tidak menghasilkan CSS apa pun untuk
-        // class itu (bg-navy-800/60 dsb jadi transparan/tidak berefek).
-        // Akibatnya judul dengan text-white berakhir di atas background putih
-        // bawaan (bg-gray-50 dari body) -> teks tidak terlihat / kontras rendah.
-        // Definisi ini membuat tema gelap yang sudah dirancang benar-benar aktif.
         navy: {
           200: "#c7cbe0",
           300: "#a3a9c9",
@@ -39,6 +32,25 @@ const config: Config = {
       },
       boxShadow: {
         glow: "0 8px 24px -8px rgba(108,58,237,0.35)",
+      },
+      fontFamily: {
+        display: ["var(--font-sora)", "sans-serif"],
+        sans: ["var(--font-inter)", "sans-serif"],
+      },
+      keyframes: {
+        "pulse-node": {
+          "0%, 100%": { opacity: "0.35", transform: "scale(1)" },
+          "50%": { opacity: "1", transform: "scale(1.35)" },
+        },
+        "drift": {
+          "0%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-14px)" },
+          "100%": { transform: "translateY(0px)" },
+        },
+      },
+      animation: {
+        "pulse-node": "pulse-node 3.2s ease-in-out infinite",
+        "drift": "drift 7s ease-in-out infinite",
       },
     },
   },

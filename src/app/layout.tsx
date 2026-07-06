@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
+import { Sora, Inter } from "next/font/google";
 import "./globals.css";
 import WhatsAppButton from "@/components/whatsapp-button";
+
+const sora = Sora({ subsets: ["latin"], variable: "--font-sora", weight: ["600", "700", "800"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: "SMM Panel - Layanan Sosial Media Termurah",
@@ -9,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id">
+    <html lang="id" className={`${sora.variable} ${inter.variable}`}>
       <body>
         {children}
         <WhatsAppButton />

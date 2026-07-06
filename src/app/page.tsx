@@ -1,26 +1,58 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatIDR } from "@/lib/utils";
+import PlatformIcon from "@/components/platform-icon";
+import { Zap, ShieldCheck, Headphones, ArrowRight, ChevronRight } from "lucide-react";
 
 export const revalidate = 60;
 
 export default async function HomePage() {
   const supabase = createClient();
+
   const { data: services } = await supabase
     .from("services")
-    .select("id, name, category, sell_rate, min_order, max_order")
+    .select("id, name, category, sell_rate, min_order, max_order, refill")
     .eq("is_active", true)
+    .gt("sell_rate", 0)
+    .not("name", "ilike", "%test%")
     .order("sell_rate", { ascending: true })
     .limit(6);
 
+  const [{ count: activeServiceCount }, { count: processedOrderCount }, { data: categoryRows }] =
+    await Promise.all([
+      supabase
+        .from("services")
+        .select("id", { count: "exact", head: true })
+        .eq("is_active", true)
+        .gt("sell_rate", 0),
+      supabase.from("orders").select("id", { count: "exact", head: true }),
+      supabase.from("services").select("category").eq("is_active", true).gt("sell_rate", 0),
+    ]);
+
+  const categoryCounts = new Map<string, number>();
+  for (const row of categoryRows || []) {
+    const key = (row.category || "Lainnya").trim();
+    categoryCounts.set(key, (categoryCounts.get(key) || 0) + 1);
+  }
+  const topCategories = [...categoryCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
+
+  const stats = [
+    { label: "Layanan Aktif", value: (activeServiceCount ?? 0).toLocaleString("id-ID") + "+" },
+    { label: "Kategori Platform", value: categoryCounts.size.toLocaleString("id-ID") },
+    { label: "Pesanan Diproses", value: (processedOrderCount ?? 0).toLocaleString("id-ID") },
+  ];
+
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Nav */}
-      <header className="border-b border-gray-100 bg-white">
+    <main className="min-h-screen bg-gray-50 font-sans">
+      <header className="sticky top-0 z-20 border-b border-gray-100 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="text-xl font-bold text-brand-600">SMM Panel</span>
-          <nav className="flex items-center gap-3">
-            <Link href="/layanan" className="text-sm font-medium text-gray-500 hover:text-gray-900">
+          <span className="font-display text-xl font-extrabold tracking-tight text-gray-900">
+            SMM<span className="text-brand-500">.</span>Panel
+          </span>
+          <nav className="flex items-center gap-2 sm:gap-3">
+            <Link href="/layanan" className="hidden text-sm font-medium text-gray-500 hover:text-gray-900 sm:block">
               Daftar Harga
             </Link>
             <Link href="/login" className="btn-secondary">
@@ -33,41 +65,136 @@ export default async function HomePage() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="mx-auto max-w-6xl px-6 py-20 text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
-          Booster Media Sosial <span className="text-brand-500">Termurah &amp; Tercepat</span>
-        </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-500">
-          Followers, Likes, Views, Comments untuk Instagram, TikTok, YouTube, Facebook, dan lainnya.
-          Proses otomatis 24 jam, garansi refill.
-        </p>
-        <div className="mt-8 flex justify-center gap-3">
-          <Link href="/register" className="btn-primary px-6 py-3 text-base">
-            Mulai Sekarang
-          </Link>
-          <Link href="/layanan" className="btn-secondary px-6 py-3 text-base">
-            Lihat Daftar Harga
-          </Link>
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-900 via-brand-800 to-indigo-950">
+        <NetworkMotif />
+        <div className="relative mx-auto max-w-6xl px-6 pb-28 pt-20 text-center sm:pt-28">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-brand-100">
+            <Zap size={13} className="text-brand-300" />
+            Sinkron otomatis dari provider — harga selalu update
+          </span>
+          <h1 className="mx-auto mt-6 max-w-3xl font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl">
+            Satu panel untuk seluruh <span className="text-brand-300">pertumbuhan sosial media</span> kamu
+          </h1>
+          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-brand-100/80">
+            Followers, likes, views, dan komentar untuk Instagram, TikTok, YouTube, Facebook, dan lainnya.
+            Order otomatis 24 jam, harga transparan, garansi refill.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link href="/register" className="btn-primary px-6 py-3 text-base shadow-glow">
+              Mulai Sekarang <ArrowRight size={16} className="ml-1.5" />
+            </Link>
+            <Link
+              href="/layanan"
+              className="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/5 px-6 py-3 text-base font-semibold text-white transition hover:bg-white/10"
+            >
+              Lihat Daftar Harga
+            </Link>
+          </div>
+        </div>
+
+        <div className="relative mx-auto -mb-16 max-w-4xl px-6">
+          <div className="grid grid-cols-3 divide-x divide-gray-100 rounded-[24px] border border-gray-100 bg-white p-6 shadow-xl shadow-brand-900/10 sm:p-8">
+            {stats.map((s) => (
+              <div key={s.label} className="text-center">
+                <p className="font-display text-2xl font-extrabold text-gray-900 sm:text-3xl">{s.value}</p>
+                <p className="mt-1 text-xs text-gray-500 sm:text-sm">{s.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Featured services */}
+      {topCategories.length > 0 && (
+        <section className="mx-auto max-w-6xl px-6 pb-16 pt-24 sm:pt-28">
+          <div className="mb-8 flex items-end justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-500">Jelajahi</p>
+              <h2 className="mt-1 font-display text-2xl font-bold text-gray-900">Kategori Layanan</h2>
+            </div>
+            <Link href="/layanan" className="hidden items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700 sm:flex">
+              Lihat semua <ChevronRight size={16} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {topCategories.map(([name, count]) => (
+              <Link
+                key={name}
+                href={`/layanan?kategori=${encodeURIComponent(name)}`}
+                className="group flex flex-col items-center gap-3 rounded-2xl border border-gray-100 bg-white p-5 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <PlatformIcon name={name} />
+                <div>
+                  <p className="truncate text-sm font-semibold text-gray-900">{name}</p>
+                  <p className="text-xs text-gray-400">{count} layanan</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="bg-white py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mb-10 text-center">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-500">Kenapa panel ini</p>
+            <h2 className="mt-1 font-display text-2xl font-bold text-gray-900">Dibangun untuk reseller yang serius</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            {[
+              {
+                icon: Zap,
+                title: "Proses Otomatis 24 Jam",
+                desc: "Order langsung diteruskan ke provider begitu dibuat, tanpa perlu menunggu admin approve satu-satu.",
+              },
+              {
+                icon: ShieldCheck,
+                title: "Harga & Stok Transparan",
+                desc: "Katalog tersinkron otomatis dari provider, jadi harga dan ketersediaan layanan selalu mengikuti kondisi terkini.",
+              },
+              {
+                icon: Headphones,
+                title: "Riwayat & Status Jelas",
+                desc: "Pantau status tiap pesanan secara real-time dari dashboard, lengkap dengan opsi refill kalau layanannya mendukung.",
+              },
+            ].map((f) => (
+              <div key={f.title} className="card">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+                  <f.icon size={20} />
+                </div>
+                <h3 className="mt-4 font-semibold text-gray-900">{f.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-gray-500">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {services && services.length > 0 && (
-        <section className="mx-auto max-w-6xl px-6 pb-20">
-          <h2 className="mb-6 text-xl font-bold text-gray-900">Layanan Termurah</h2>
+        <section className="mx-auto max-w-6xl px-6 py-20">
+          <div className="mb-8 flex items-end justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-500">Harga terbaik</p>
+              <h2 className="mt-1 font-display text-2xl font-bold text-gray-900">Layanan Termurah</h2>
+            </div>
+            <Link href="/layanan" className="hidden items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700 sm:flex">
+              Lihat semua <ChevronRight size={16} />
+            </Link>
+          </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {services.map((s) => (
-              <div key={s.id} className="card">
-                <p className="text-xs font-medium uppercase tracking-wide text-brand-500">
-                  {s.category}
-                </p>
-                <p className="mt-1 font-semibold text-gray-900">{s.name}</p>
-                <p className="mt-3 text-lg font-bold text-gray-900">
+              <div key={s.id} className="card flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <PlatformIcon name={s.category || s.name} />
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium uppercase tracking-wide text-brand-500">{s.category}</p>
+                    <p className="truncate font-semibold text-gray-900">{s.name}</p>
+                  </div>
+                </div>
+                <p className="text-lg font-bold text-gray-900">
                   {formatIDR(s.sell_rate)} <span className="text-sm font-normal text-gray-400">/ 1000</span>
                 </p>
-                <p className="mt-1 text-xs text-gray-400">
-                  Min {s.min_order} - Maks {s.max_order}
+                <p className="text-xs text-gray-400">
+                  Min {s.min_order} — Maks {s.max_order}{s.refill ? " · Refill tersedia" : ""}
                 </p>
               </div>
             ))}
@@ -75,9 +202,64 @@ export default async function HomePage() {
         </section>
       )}
 
-      <footer className="border-t border-gray-100 py-8 text-center text-sm text-gray-400">
+      <section className="mx-auto max-w-6xl px-6 pb-20">
+        <div className="flex flex-col items-center gap-5 rounded-[28px] bg-gradient-to-br from-brand-600 to-indigo-600 px-6 py-14 text-center shadow-glow sm:px-14">
+          <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">Siap naikkan performa sosial media kamu?</h2>
+          <p className="max-w-md text-sm text-brand-100">
+            Daftar gratis, top up saldo, dan mulai order dalam hitungan menit.
+          </p>
+          <Link href="/register" className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-base font-semibold text-brand-700 shadow-sm transition hover:bg-brand-50">
+            Daftar Gratis <ArrowRight size={16} className="ml-1.5" />
+          </Link>
+        </div>
+      </section>
+
+      <footer className="border-t border-gray-100 bg-white py-10 text-center text-sm text-gray-400">
         © {new Date().getFullYear()} SMM Panel. Semua hak dilindungi.
       </footer>
     </main>
+  );
+}
+
+function NetworkMotif() {
+  const nodes = [
+    { x: 8, y: 22, delay: "0s" },
+    { x: 22, y: 62, delay: "0.4s" },
+    { x: 38, y: 15, delay: "0.8s" },
+    { x: 55, y: 48, delay: "1.2s" },
+    { x: 70, y: 20, delay: "0.2s" },
+    { x: 85, y: 58, delay: "1.6s" },
+    { x: 94, y: 30, delay: "1s" },
+    { x: 15, y: 85, delay: "0.6s" },
+    { x: 63, y: 82, delay: "1.4s" },
+  ];
+  const edges: [number, number][] = [
+    [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [1, 7], [3, 8],
+  ];
+
+  return (
+    <div className="pointer-events-none absolute inset-0 opacity-[0.55]" aria-hidden="true">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-full w-full">
+        {edges.map(([a, b], i) => (
+          <line
+            key={i}
+            x1={nodes[a].x}
+            y1={nodes[a].y}
+            x2={nodes[b].x}
+            y2={nodes[b].y}
+            stroke="white"
+            strokeOpacity="0.15"
+            strokeWidth="0.15"
+          />
+        ))}
+      </svg>
+      {nodes.map((n, i) => (
+        <span
+          key={i}
+          className="absolute h-2 w-2 animate-pulse-node rounded-full bg-brand-300"
+          style={{ left: `${n.x}%`, top: `${n.y}%`, animationDelay: n.delay }}
+        />
+      ))}
+    </div>
   );
 }
