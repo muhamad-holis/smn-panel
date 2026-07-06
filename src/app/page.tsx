@@ -96,7 +96,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative mx-auto hidden w-full max-w-xs lg:block">
+          <div className="relative mx-auto w-44 sm:w-56 lg:w-full lg:max-w-xs">
             <Image
               src="/mascot-hero.webp"
               alt="Artholic Panel"
@@ -277,7 +277,7 @@ export default async function HomePage() {
 
       <section className="mx-auto max-w-6xl px-6 pb-20">
         <div className="relative flex flex-col items-center gap-5 overflow-hidden rounded-[28px] bg-gradient-to-br from-brand-600 to-indigo-600 px-6 py-14 text-center shadow-glow sm:px-14">
-          <div className="pointer-events-none absolute -right-10 -top-10 hidden opacity-90 sm:block">
+          <div className="pointer-events-none absolute -right-4 -top-4 w-20 opacity-90 sm:-right-6 sm:-top-6 sm:w-32 lg:w-40">
             <Image src="/mascot-badge.webp" alt="" width={180} height={180} aria-hidden />
           </div>
           <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">Siap naikkan performa sosial media kamu?</h2>
