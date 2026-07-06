@@ -6,10 +6,20 @@ import GlobalSettingsForm from "./settings-form";
 
 export const dynamic = "force-dynamic";
 
+type Service = {
+  id: number;
+  name: string;
+  category: string | null;
+  cost_rate: number;
+  sell_rate: number;
+  markup_percent: number;
+  is_active: boolean;
+};
+
 export default async function AdminPengaturanPage() {
   const admin = createServiceClient();
 
-  const services = await fetchAllServices(
+  const services = await fetchAllServices<Service>(
     "id, name, category, cost_rate, sell_rate, markup_percent, is_active"
   );
 
