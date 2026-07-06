@@ -70,16 +70,16 @@ export default async function HomePage() {
 
       <section className="relative overflow-hidden bg-gradient-to-br from-brand-900 via-brand-800 to-indigo-950">
         <NetworkMotif />
-        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-6 pb-16 pt-16 sm:pt-20 lg:grid-cols-2 lg:gap-6 lg:pb-24">
-          <div className="text-center lg:text-left">
-            <h1 className="mx-auto max-w-xl font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl lg:mx-0">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-6 pb-16 pt-16 sm:pt-20 md:grid-cols-2 md:gap-6 md:pb-24">
+          <div className="text-center md:text-left">
+            <h1 className="mx-auto max-w-xl font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl md:mx-0">
               Satu panel untuk seluruh <span className="text-brand-300">pertumbuhan sosial media</span> kamu
             </h1>
-            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-brand-100/80 lg:mx-0">
+            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-brand-100/80 md:mx-0">
               Followers, likes, views, dan komentar untuk Instagram, TikTok, YouTube, Facebook, dan lainnya.
               Order otomatis 24 jam, harga transparan, garansi refill.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
+            <div className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
               <Link href="/register" className="btn-primary px-6 py-3 text-base shadow-glow">
                 Mulai Sekarang <ArrowRight size={16} className="ml-1.5" />
               </Link>
@@ -92,7 +92,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative mx-auto w-44 sm:w-56 lg:w-full lg:max-w-xs">
+          <div className="relative mx-auto w-44 sm:w-56 md:w-full md:max-w-xs">
             <Image
               src="/mascot-hero.webp"
               alt="Artholic Panel"
@@ -264,6 +264,7 @@ export default async function HomePage() {
 
       <section className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
         <div className="mb-10 text-center">
+          <Image src="/faq-badge.webp" alt="Artholic Panel" width={512} height={512} className="mx-auto mb-4 w-20 sm:w-24" />
           <p className="text-xs font-semibold uppercase tracking-wide text-brand-500">FAQ</p>
           <h2 className="mt-1 font-display text-2xl font-bold text-gray-900">Pertanyaan Umum</h2>
           <p className="mt-2 text-sm text-gray-500">Berikut telah kami rangkum beberapa pertanyaan yang paling sering ditanyakan.</p>
@@ -273,7 +274,7 @@ export default async function HomePage() {
 
       <section className="mx-auto max-w-6xl px-6 pb-20">
         <div className="relative flex flex-col items-center gap-5 overflow-hidden rounded-[28px] bg-gradient-to-br from-brand-600 to-indigo-600 px-6 py-14 text-center shadow-glow sm:px-14">
-          <div className="pointer-events-none absolute -right-4 -top-4 w-20 opacity-90 sm:-right-6 sm:-top-6 sm:w-32 lg:w-40">
+          <div className="pointer-events-none absolute right-3 top-3 w-16 opacity-95 sm:right-5 sm:top-5 sm:w-28 lg:w-36">
             <Image src="/mascot-badge.webp" alt="" width={180} height={180} aria-hidden />
           </div>
           <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">Siap naikkan performa sosial media kamu?</h2>
