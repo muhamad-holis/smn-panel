@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { bayarGG } from "@/lib/bayarGG";
+import { notify } from "@/lib/notify";
+import { formatIDR } from "@/lib/utils";
 
-/**
- * Webhook dari BAYAR GG. Konfigurasikan URL ini
- * (https://domain-kamu.com/api/topup/webhook/bayar-gg) di dashboard BAYAR GG > Developer > Webhook.
- *
- * Catatan keamanan: signature header diasumsikan bernama "X-Signature".
- * Sesuaikan nama header persis dengan yang tertulis di dashboard Developer
- * BAYAR GG kamu (bisa berbeda, mis. "X-BayarGG-Signature").
- */
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
   const signature = req.headers.get("x-signature") || req.headers.get("x-bayargg-signature");
@@ -38,7 +32,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invoice tidak ditemukan." }, { status: 404 });
   }
 
-  // Idempotency guard - jangan proses dua kali kalau webhook dikirim ulang
   if (topup.status === "paid") {
     return NextResponse.json({ success: true, message: "Sudah diproses sebelumnya." });
   }
@@ -51,10 +44,18 @@ export async function POST(req: NextRequest) {
 
     await admin.rpc("adjust_balance", {
       p_user_id: topup.user_id,
-      p_amount: topup.amount, // saldo yang ditambahkan = amount asli (bukan final_amount+kode unik)
+      p_amount: topup.amount,
       p_type: "topup",
       p_reference: invoiceId,
       p_description: `Top up via ${topup.gateway}`,
+    });
+
+    await notify({
+      userId: topup.user_id,
+      type: "topup",
+      title: "Top up berhasil",
+      message: `Saldo kamu bertambah ${formatIDR(topup.amount)}.`,
+      link: "/dashboard/deposit",
     });
   } else if (status === "expired" || status === "cancelled") {
     await admin.from("topups").update({ status, raw_response: payload }).eq("id", topup.id);
@@ -63,7 +64,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ success: true });
 }
 
-/** Endpoint GET untuk cek manual status invoice dari sisi client (polling fallback) */
 export async function GET(req: NextRequest) {
   const invoiceId = req.nextUrl.searchParams.get("invoice_id");
   if (!invoiceId) return NextResponse.json({ error: "invoice_id wajib diisi." }, { status: 400 });

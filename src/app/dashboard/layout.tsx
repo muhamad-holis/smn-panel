@@ -4,7 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { formatIDR } from "@/lib/utils";
 import DashboardNav from "./nav";
 import UserMenu from "./user-menu";
-import { Bell, Plus } from "lucide-react";
+import NotificationBell from "./notification-bell";
+import { Plus } from "lucide-react";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
@@ -20,12 +21,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq("id", user.id)
     .single();
 
-  // Dipakai sebagai badge notifikasi lonceng: jumlah order yang masih pending/diproses
-  const { count: pendingCount } = await supabase
-    .from("orders")
-    .select("id", { count: "exact", head: true })
+  const { data: notifications } = await supabase
+    .from("notifications")
+    .select("id, type, title, message, link, is_read, created_at")
     .eq("user_id", user.id)
-    .in("status", ["Pending", "Processing", "In progress"]);
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const unreadCount = notifications?.filter((n) => !n.is_read).length || 0;
 
   const displayName = profile?.full_name || profile?.email || "";
   const initial = displayName.charAt(0).toUpperCase();
@@ -53,24 +56,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
               </span>
             </Link>
 
-            <Link
-              href="/dashboard/pesanan"
-              className="relative rounded-2xl border border-gray-100 p-2.5 text-gray-500 hover:bg-gray-50"
-              aria-label="Notifikasi order"
-            >
-              <Bell size={18} />
-              {!!pendingCount && pendingCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-                  {pendingCount > 9 ? "9+" : pendingCount}
-                </span>
-              )}
-            </Link>
+            <NotificationBell initialNotifications={notifications || []} unreadCount={unreadCount} />
 
             <UserMenu displayName={displayName} initial={initial} tierLabel={tierLabel} />
           </div>
         </header>
 
-        {/* Saldo mobile (search & saldo desktop disembunyikan di layar kecil) */}
         <div className="flex items-center justify-between border-b border-gray-100 bg-white px-4 py-3 sm:hidden">
           <p className="text-sm text-gray-500">
             Halo, <span className="font-semibold text-gray-900">{displayName}</span>

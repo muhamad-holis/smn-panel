@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { provider } from "@/lib/provider";
-import { calcCharge } from "@/lib/utils";
+import { calcCharge, formatIDR, orderCode } from "@/lib/utils";
+import { notify } from "@/lib/notify";
 
 export async function POST(req: NextRequest) {
   const supabase = createClient();
@@ -41,11 +42,8 @@ export async function POST(req: NextRequest) {
   const charge = calcCharge(service.sell_rate, quantity);
   const cost = Math.ceil((service.cost_rate / 1000) * quantity);
 
-  // Pakai service-role client supaya insert order + potong saldo bisa dilakukan dalam satu alur konsisten,
-  // walau RLS profiles/orders tetap membatasi apa yang boleh dibaca user dari client biasa.
   const admin = createServiceClient();
 
-  // Potong saldo dulu secara atomik (RPC akan gagal kalau saldo tidak cukup)
   try {
     await admin.rpc("adjust_balance", {
       p_user_id: user.id,
@@ -58,7 +56,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Saldo tidak mencukupi." }, { status: 400 });
   }
 
-  // Buat order awal berstatus Pending sebelum panggil provider
   const { data: order, error: insertError } = await admin
     .from("orders")
     .insert({
@@ -74,7 +71,6 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (insertError || !order) {
-    // rollback saldo jika gagal insert
     await admin.rpc("adjust_balance", {
       p_user_id: user.id,
       p_amount: charge,
@@ -85,7 +81,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Gagal membuat order." }, { status: 500 });
   }
 
-  // Panggil provider
   try {
     const result = await provider.addOrder({
       service: service.provider_service_id,
@@ -94,7 +89,6 @@ export async function POST(req: NextRequest) {
     });
 
     if ("error" in result) {
-      // refund + tandai error
       await admin.rpc("adjust_balance", {
         p_user_id: user.id,
         p_amount: charge,
@@ -103,6 +97,14 @@ export async function POST(req: NextRequest) {
         p_description: `Refund: provider error - ${result.error}`,
       });
       await admin.from("orders").update({ status: "Error", provider_response: result }).eq("id", order.id);
+
+      await notify({
+        userId: user.id,
+        type: "order",
+        title: "Order gagal diproses",
+        message: `Order ${orderCode(order.id)} ditolak provider, saldo sudah dikembalikan.`,
+        link: "/dashboard/pesanan",
+      });
 
       return NextResponse.json({ error: `Provider menolak order: ${result.error}` }, { status: 502 });
     }
@@ -116,8 +118,6 @@ export async function POST(req: NextRequest) {
       })
       .eq("id", order.id);
 
-    // Komisi afiliasi: kalau akun ini didaftarkan lewat link referral, kreditkan komisi ke referrer.
-    // Dibungkus try/catch supaya kegagalan di sini tidak menggagalkan order yang sudah berhasil dibuat.
     try {
       const { data: profileRow } = await admin
         .from("profiles")
@@ -141,6 +141,14 @@ export async function POST(req: NextRequest) {
             p_referred_user_id: user.id,
             p_order_id: order.id,
             p_amount: commission,
+          });
+
+          await notify({
+            userId: profileRow.referred_by,
+            type: "affiliate",
+            title: "Komisi afiliasi masuk",
+            message: `Kamu dapat komisi ${formatIDR(commission)} dari order referral kamu.`,
+            link: "/dashboard/afiliasi",
           });
         }
       }

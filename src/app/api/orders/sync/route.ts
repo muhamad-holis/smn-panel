@@ -1,18 +1,22 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { provider } from "@/lib/provider";
+import { notify } from "@/lib/notify";
+import { orderCode, statusLabel } from "@/lib/utils";
+
+const FINAL_STATUSES = ["Completed", "Partial", "Canceled", "Refunded", "Error"];
 
 /**
  * Sinkronisasi status order yang masih aktif (Pending/Processing/In progress)
- * dengan status terbaru dari provider MedanPedia.
- * Dipanggil oleh /api/cron/sync (Vercel Cron) atau manual oleh admin.
+ * dengan status terbaru dari provider MedanPedia. Kirim notifikasi ke user
+ * kalau status berubah jadi status final (selesai/gagal/dibatalkan/refund).
  */
 export async function POST() {
   const admin = createServiceClient();
 
   const { data: activeOrders } = await admin
     .from("orders")
-    .select("id, provider_order_id")
+    .select("id, user_id, provider_order_id")
     .in("status", ["Pending", "Processing", "In progress"])
     .not("provider_order_id", "is", null)
     .limit(100);
@@ -38,6 +42,17 @@ export async function POST() {
         updated_at: new Date().toISOString(),
       })
       .eq("id", order.id);
+
+    if (FINAL_STATUSES.includes(info.status)) {
+      const isSuccess = info.status === "Completed" || info.status === "Partial";
+      await notify({
+        userId: order.user_id,
+        type: "order",
+        title: isSuccess ? "Order selesai" : "Order bermasalah",
+        message: `Order ${orderCode(order.id)} sekarang berstatus ${statusLabel(info.status)}.`,
+        link: "/dashboard/pesanan",
+      });
+    }
 
     synced++;
   }

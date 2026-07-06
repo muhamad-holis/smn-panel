@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { cashi } from "@/lib/cashi";
+import { notify } from "@/lib/notify";
+import { formatIDR } from "@/lib/utils";
 
-/**
- * Menandai 1 invoice topup sebagai lunas & menambah saldo user - aman dipanggil berkali-kali
- * (dicek dulu apakah statusnya sudah "paid" sebelum memproses).
- * Dipakai baik dari webhook (POST) maupun fallback polling (GET) supaya keduanya konsisten
- * dan tidak mungkin menambah saldo dua kali untuk 1 invoice yang sama.
- */
 async function settleTopup(orderId: string, rawPayload: any) {
   const admin = createServiceClient();
 
@@ -22,10 +18,18 @@ async function settleTopup(orderId: string, rawPayload: any) {
 
   await admin.rpc("adjust_balance", {
     p_user_id: topup.user_id,
-    p_amount: topup.amount, // saldo yang ditambahkan = nominal asli, bukan yang sudah + kode unik
+    p_amount: topup.amount,
     p_type: "topup",
     p_reference: orderId,
     p_description: "Top up via cashi.id",
+  });
+
+  await notify({
+    userId: topup.user_id,
+    type: "topup",
+    title: "Top up berhasil",
+    message: `Saldo kamu bertambah ${formatIDR(topup.amount)}.`,
+    link: "/dashboard/deposit",
   });
 
   return { ok: true, reason: "settled" as const };
@@ -40,17 +44,6 @@ async function markExpired(orderId: string, rawPayload: any) {
     .neq("status", "paid");
 }
 
-/**
- * Webhook dari CASHI.ID. Daftarkan URL ini di Dashboard Merchant > Webhook:
- * https://domain-kamu.com/api/topup/webhook/cashi
- *
- * Payload sesuai dokumentasi resmi:
- * {
- *   "event": "PAYMENT_SETTLED",
- *   "data": { "order_id": "...", "amount": 50000, "status": "SETTLED", "payment_method": "...", "timestamp": "..." }
- * }
- * Signature: header "X-Gateway-Signature" = HMAC-SHA256(raw body, CASHI_WEBHOOK_SECRET) dalam hex.
- */
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
   const signature = req.headers.get("x-gateway-signature");
@@ -62,7 +55,6 @@ export async function POST(req: NextRequest) {
   const payload = JSON.parse(rawBody);
   const orderId: string | undefined = payload?.data?.order_id;
 
-  // Dokumentasi cashi.id menyebutkan order_id berawalan "TEST-" dipakai untuk uji koneksi webhook
   if (orderId?.startsWith("TEST-")) {
     return NextResponse.json({ success: true, message: "Test connection successful" });
   }
@@ -83,11 +75,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ success: true });
 }
 
-/**
- * Fallback polling dari client (dipanggil dari halaman /dashboard/topup tiap beberapa detik)
- * kalau-kalau webhook telat/gagal terkirim. Kalau ternyata sudah SETTLED di sisi cashi.id
- * tapi webhook belum masuk, endpoint ini akan langsung menambah saldo juga (idempotent).
- */
 export async function GET(req: NextRequest) {
   const orderId = req.nextUrl.searchParams.get("order_id");
   if (!orderId) return NextResponse.json({ error: "order_id wajib diisi." }, { status: 400 });
