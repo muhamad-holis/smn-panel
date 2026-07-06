@@ -2,7 +2,7 @@
 
 export default function WhatsAppButton({
   phone = "6283803888990",
-  message = "Halo, saya butuh bantuan terkait SMM Panel.",
+  message = "Halo, saya butuh bantuan terkait Artholic Panel.",
 }: {
   phone?: string;
   message?: string;

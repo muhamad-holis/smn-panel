@@ -69,13 +69,13 @@ export default function DashboardNav({ isAdmin }: { isAdmin: boolean }) {
         <div className="flex items-center justify-between px-5 py-6">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-sm">
-              <Image src="/mascot-placeholder.png" alt="Artholic Studio" fill sizes="36px" />
+              <Image src="/mascot.webp" alt="Artholic Panel" fill sizes="36px" />
             </div>
             <div>
               <p className="text-sm font-bold leading-tight tracking-tight text-gray-900">
-                ARTHOLIC<span className="text-brand-500"> STUDIO</span>
+                ARTHOLIC<span className="text-brand-500"> PANEL</span>
               </p>
-              <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400">SMM Panel</p>
+              <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400">Social Media Growth Solutions</p>
             </div>
           </Link>
           <button onClick={() => setOpen(false)} className="text-gray-400 lg:hidden">
@@ -127,7 +127,7 @@ export default function DashboardNav({ isAdmin }: { isAdmin: boolean }) {
 
         <div className="p-3">
           <div className="rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600 p-4 text-white shadow-sm">
-            <p className="text-sm font-bold">Program Afiliasi Artholic Studio</p>
+            <p className="text-sm font-bold">Program Afiliasi Artholic Panel</p>
             <p className="mt-0.5 text-xs text-white/80">Ajak teman pakai panel ini, dapatkan komisi otomatis dari setiap order mereka</p>
             <Link
               href="/dashboard/afiliasi"

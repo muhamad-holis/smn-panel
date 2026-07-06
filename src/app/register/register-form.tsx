@@ -103,7 +103,7 @@ export default function RegisterForm() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <Link href="/" className="text-2xl font-bold text-brand-400">
-            SMM Panel
+            Artholic Panel
           </Link>
           <p className="mt-2 text-sm text-navy-300">Buat akun baru, gratis</p>
         </div>

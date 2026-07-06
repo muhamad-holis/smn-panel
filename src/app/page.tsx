@@ -49,7 +49,7 @@ export default async function HomePage() {
       <header className="sticky top-0 z-20 border-b border-gray-100 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <span className="font-display text-xl font-extrabold tracking-tight text-gray-900">
-            Artholic<span className="text-brand-500">.</span>Studio
+            Artholic<span className="text-brand-500"> Panel</span>
           </span>
           <nav className="flex items-center gap-2 sm:gap-3">
             <Link href="/layanan" className="hidden text-sm font-medium text-gray-500 hover:text-gray-900 sm:block">
@@ -215,7 +215,7 @@ export default async function HomePage() {
       </section>
 
       <footer className="border-t border-gray-100 bg-white py-10 text-center text-sm text-gray-400">
-        © {new Date().getFullYear()} Artholic Studio. Semua hak dilindungi.
+        © {new Date().getFullYear()} Artholic Panel. Semua hak dilindungi.
       </footer>
     </main>
   );

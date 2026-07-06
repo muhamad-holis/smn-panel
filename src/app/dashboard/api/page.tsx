@@ -40,7 +40,7 @@ export default async function ApiPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-bold text-gray-900">API</h1>
-        <p className="text-sm text-gray-500">Integrasikan Artholic Studio ke sistem atau bot kamu sendiri.</p>
+        <p className="text-sm text-gray-500">Integrasikan Artholic Panel ke sistem atau bot kamu sendiri.</p>
       </div>
 
       <div className="card space-y-3">

@@ -50,7 +50,7 @@ export default async function AfiliasiPage() {
       <div>
         <h1 className="text-xl font-bold text-gray-900">Afiliasi</h1>
         <p className="text-sm text-gray-500">
-          Ajak teman kamu pakai Artholic Studio, dapatkan komisi otomatis dari setiap order mereka.
+          Ajak teman kamu pakai Artholic Panel, dapatkan komisi otomatis dari setiap order mereka.
         </p>
       </div>
 

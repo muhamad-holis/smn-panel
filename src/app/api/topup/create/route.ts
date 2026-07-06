@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
   // --- fallback: bayar.gg ---
   const result = await bayarGG.createPayment({
     amount,
-    description: `Top up saldo SMM Panel - ${user.email}`,
+    description: `Top up saldo Artholic Panel - ${user.email}`,
     redirect_url: `${appUrl}/dashboard/topup`,
     callback_url: `${appUrl}/api/topup/webhook/bayar-gg`,
   });

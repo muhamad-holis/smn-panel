@@ -56,7 +56,7 @@ export default function LoginForm() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <Link href="/" className="text-2xl font-bold text-brand-400">
-            SMM Panel
+            Artholic Panel
           </Link>
           <p className="mt-2 text-sm text-navy-300">Masuk ke akun kamu</p>
         </div>

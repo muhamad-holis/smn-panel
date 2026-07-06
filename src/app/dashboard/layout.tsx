@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatIDR } from "@/lib/utils";
@@ -39,7 +40,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <DashboardNav isAdmin={profile?.role === "admin"} />
 
       <div className="flex-1">
-        <header className="flex items-center justify-end gap-3 border-b border-gray-100 bg-white px-4 py-4 pl-16 lg:pl-6">
+        <header className="flex items-center justify-between gap-3 border-b border-gray-100 bg-white px-4 py-4 pl-16 lg:pl-6">
+          <Link href="/dashboard" className="flex items-center gap-2 lg:hidden">
+            <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg">
+              <Image src="/mascot.webp" alt="Artholic Panel" fill sizes="32px" />
+            </div>
+            <span className="text-sm font-bold tracking-tight text-gray-900">
+              ARTHOLIC<span className="text-brand-500"> PANEL</span>
+            </span>
+          </Link>
+
           <div className="flex items-center justify-end gap-2 sm:gap-3">
             <Link
               href="/dashboard/topup"
@@ -77,7 +87,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <main className="p-4 sm:p-6">{children}</main>
 
         <footer className="border-t border-gray-100 bg-white px-4 py-6 text-center text-xs text-gray-400 sm:px-6">
-          © {new Date().getFullYear()} Artholic Studio. All rights reserved. · Panel SMM Terbaik &amp; Terpercaya di Indonesia
+          © {new Date().getFullYear()} Artholic Panel. All rights reserved. · Panel SMM Terbaik &amp; Terpercaya di Indonesia
         </footer>
       </div>
     </div>

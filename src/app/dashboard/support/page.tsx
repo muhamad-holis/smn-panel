@@ -19,7 +19,7 @@ const FAQS = [
 
 export default function SupportPage() {
   const phone = "6283803888990";
-  const message = "Halo, saya butuh bantuan terkait akun Artholic Studio.";
+  const message = "Halo, saya butuh bantuan terkait akun Artholic Panel.";
   const waHref = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
   return (
