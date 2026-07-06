@@ -72,11 +72,7 @@ export default async function HomePage() {
         <NetworkMotif />
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-6 pb-16 pt-16 sm:pt-20 lg:grid-cols-2 lg:gap-6 lg:pb-24">
           <div className="text-center lg:text-left">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-brand-100">
-              <Zap size={13} className="text-brand-300" />
-              Sinkron otomatis dari provider — harga selalu update
-            </span>
-            <h1 className="mx-auto mt-6 max-w-xl font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl lg:mx-0">
+            <h1 className="mx-auto max-w-xl font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl lg:mx-0">
               Satu panel untuk seluruh <span className="text-brand-300">pertumbuhan sosial media</span> kamu
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-brand-100/80 lg:mx-0">
@@ -135,9 +131,9 @@ export default async function HomePage() {
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-gray-500 sm:text-base">
               <span className="font-semibold text-gray-800">Artholic Panel</span> adalah platform SMM Panel
-              Indonesia yang menyediakan berbagai layanan social media marketing untuk membantu bisnis dan
-              reseller berkembang. Dengan bergabung bersama kami, kamu bisa menjadi reseller jasa media sosial
-              seperti <span className="font-semibold text-gray-800">jasa penambah followers, likes, views, dan
+              Indonesia yang menyediakan berbagai layanan social media marketing untuk membantu kamu
+              mengembangkan akun media sosialmu, mulai dari{" "}
+              <span className="font-semibold text-gray-800">jasa penambah followers, likes, views, dan
               komentar</span>. Tersedia layanan untuk platform terpopuler seperti{" "}
               <span className="font-semibold text-gray-800">Instagram, TikTok, YouTube, Facebook</span>, dan
               lainnya.
@@ -190,20 +186,20 @@ export default async function HomePage() {
       <section className="bg-white py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-500">Kenapa panel ini</p>
-            <h2 className="mt-1 font-display text-2xl font-bold text-gray-900">Dibangun untuk reseller yang serius</h2>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-500">Kenapa memilih kami</p>
+            <h2 className="mt-1 font-display text-2xl font-bold text-gray-900">Solusi lengkap untuk pertumbuhan sosial media kamu</h2>
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
             {[
               {
                 icon: Zap,
                 title: "Proses Otomatis 24 Jam",
-                desc: "Order langsung diteruskan ke provider begitu dibuat, tanpa perlu menunggu admin approve satu-satu.",
+                desc: "Order kamu diproses otomatis begitu dibuat, tanpa perlu menunggu admin approve satu-satu.",
               },
               {
                 icon: ShieldCheck,
                 title: "Harga & Stok Transparan",
-                desc: "Katalog tersinkron otomatis dari provider, jadi harga dan ketersediaan layanan selalu mengikuti kondisi terkini.",
+                desc: "Harga dan ketersediaan layanan selalu update mengikuti kondisi terkini, jadi kamu selalu dapat info paling akurat.",
               },
               {
                 icon: Headphones,
