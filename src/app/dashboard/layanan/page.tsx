@@ -1,35 +1,40 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { fetchAllServices } from "@/lib/fetch-all-services";
 import { formatIDR } from "@/lib/utils";
 import PlatformIcon from "@/components/platform-icon";
 import { RefreshCw, XCircle } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
+type ServiceRow = {
+  id: number;
+  name: string;
+  category: string | null;
+  sell_rate: number;
+  min_order: number;
+  max_order: number;
+  refill: boolean;
+  cancel: boolean;
+};
+
 export default async function LayananPage({
   searchParams,
 }: {
   searchParams: { kategori?: string };
 }) {
-  const supabase = createClient();
-  let query = supabase
-    .from("services")
-    .select("id, name, category, sell_rate, min_order, max_order, refill, cancel")
-    .eq("is_active", true)
-    .order("category", { ascending: true })
-    .order("sell_rate", { ascending: true });
+  const services = await fetchAllServices<ServiceRow>(
+    "id, name, category, sell_rate, min_order, max_order, refill, cancel",
+    { onlyActive: true, category: searchParams?.kategori }
+  );
 
-  if (searchParams?.kategori) {
-    query = query.eq("category", searchParams.kategori);
-  }
-
-  const { data: services } = await query;
-
-  const grouped = (services || []).reduce<Record<string, typeof services>>((acc: any, s) => {
+  const grouped = services.reduce<Record<string, ServiceRow[]>>((acc, s) => {
     const key = s.category || "Lainnya";
     (acc[key] ||= []).push(s);
     return acc;
   }, {});
+  for (const key of Object.keys(grouped)) {
+    grouped[key].sort((a, b) => a.sell_rate - b.sell_rate);
+  }
 
   return (
     <div className="space-y-6">

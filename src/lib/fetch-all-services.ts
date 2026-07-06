@@ -15,7 +15,7 @@ const PAGE_SIZE = 1000;
 
 export async function fetchAllServices<T extends Record<string, any>>(
   columns: string,
-  opts: { onlyActive?: boolean } = {}
+  opts: { onlyActive?: boolean; category?: string } = {}
 ): Promise<T[]> {
   const supabase = createServiceClient();
   const all: T[] = [];
@@ -29,6 +29,7 @@ export async function fetchAllServices<T extends Record<string, any>>(
       .range(from, from + PAGE_SIZE - 1);
 
     if (opts.onlyActive) query = query.eq("is_active", true);
+    if (opts.category) query = query.eq("category", opts.category);
 
     const { data, error } = await query;
     if (error) throw error;

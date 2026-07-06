@@ -1,16 +1,12 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { fetchAllServices } from "@/lib/fetch-all-services";
 import PlatformIcon from "@/components/platform-icon";
 import { ChevronRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function KategoriPage() {
-  const supabase = createClient();
-  const { data: services } = await supabase
-    .from("services")
-    .select("category")
-    .eq("is_active", true);
+  const services = await fetchAllServices<{ category: string | null }>("category", { onlyActive: true });
 
   const counts = new Map<string, number>();
   for (const s of services || []) {
