@@ -45,9 +45,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   <Image 
     src="/logo.webp" 
     alt="Artholic Panel" 
-    width={180} 
-    height={50} 
-    className="h-10 w-auto object-contain"
+    width={400} 
+    height={120} 
+    className="w-40 h-auto object-contain"
     priority
   />
 </Link>
