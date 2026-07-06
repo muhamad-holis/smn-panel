@@ -127,13 +127,13 @@ export default function DashboardNav({ isAdmin }: { isAdmin: boolean }) {
 
         <div className="p-3">
           <div className="rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600 p-4 text-white shadow-sm">
-            <p className="text-sm font-bold">Jadi Reseller Artholic Studio</p>
-            <p className="mt-0.5 text-xs text-white/80">Dapatkan keuntungan lebih besar dengan harga spesial reseller</p>
+            <p className="text-sm font-bold">Program Afiliasi Artholic Studio</p>
+            <p className="mt-0.5 text-xs text-white/80">Ajak teman pakai panel ini, dapatkan komisi otomatis dari setiap order mereka</p>
             <Link
               href="/dashboard/afiliasi"
               className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-white/15 px-3 py-2 text-xs font-semibold backdrop-blur transition hover:bg-white/25"
             >
-              Daftar Sekarang
+              Bagikan Link Sekarang
             </Link>
           </div>
         </div>
