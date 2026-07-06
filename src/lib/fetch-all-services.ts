@@ -40,7 +40,7 @@ export async function fetchAllServices<T extends Record<string, any>>(
     if (error) throw error;
     if (!data || data.length === 0) break;
 
-    all.push(...(data as T[]));
+    all.push(...(data as unknown as T[]));
     from += data.length; // maju sesuai jumlah baris yang BENAR-BENAR balik, bukan asumsi PAGE_SIZE
   }
 
