@@ -41,17 +41,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       <div className="flex-1">
         <header className="flex items-center justify-between gap-3 border-b border-gray-100 bg-white px-4 py-4 pl-16 lg:pl-6">
-          <Link href="/dashboard" className="flex items-center lg:hidden">
-  <Image 
-    src="/logo.webp" 
-    alt="Artholic Panel" 
-    width={400} 
-    height={120} 
-    className="w-[140px] h-auto object-contain"
-    priority
-  />
+           <Link href="/dashboard" className="flex items-center lg:hidden">
+  {/* Container ini mengunci ruang di header agar tetap pendek (h-8 = 32px) */}
+  <div className="relative h-8 w-[140px]">
+    {/* Gambar dibuat absolute agar melayang dan bisa lebih besar dari containernya tanpa merusak header */}
+    <Image 
+      src="/logo.webp" 
+      alt="Artholic Panel" 
+      width={400} 
+      height={120} 
+      className="absolute top-1/2 left-0 w-[160px] h-auto max-w-none -translate-y-1/2 object-contain"
+      priority
+    />
+  </div>
 </Link>
-          
+         
           <div className="flex items-center justify-end gap-2 sm:gap-3">
             <Link
               href="/dashboard/topup"
