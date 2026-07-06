@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { provider } from "@/lib/provider";
 import { applyMarkup } from "@/lib/utils";
+import { cleanServiceText } from "@/lib/sanitize";
 
 export const maxDuration = 60;
 
@@ -103,8 +104,8 @@ export async function POST(req: NextRequest) {
 
       return {
         provider_service_id: ps.service,
-        name: ps.name,
-        category: ps.category,
+        name: cleanServiceText(ps.name),
+        category: cleanServiceText(ps.category),
         type: ps.type,
         min_order: Number(ps.min),
         max_order: Number(ps.max),
