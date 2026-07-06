@@ -47,7 +47,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     alt="Artholic Panel" 
     width={400} 
     height={120} 
-    className="h-12 w-auto max-w-[180px] object-contain object-left"
+    className="w-[140px] h-auto object-contain"
     priority
   />
 </Link>
