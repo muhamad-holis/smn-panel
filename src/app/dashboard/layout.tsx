@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatIDR } from "@/lib/utils";
 import DashboardNav from "./nav";
 import UserMenu from "./user-menu";
-import { Search, Bell, Plus } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
@@ -36,13 +36,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <DashboardNav isAdmin={profile?.role === "admin"} />
 
       <div className="flex-1">
-        <header className="flex items-center justify-between gap-3 border-b border-gray-100 bg-white px-4 py-4 pl-16 lg:pl-6">
-          <div className="hidden max-w-xs flex-1 items-center gap-2 rounded-2xl bg-gray-50 px-3.5 py-2.5 text-sm text-gray-400 sm:flex">
-            <Search size={16} />
-            <span>Cari layanan, order...</span>
-          </div>
-
-          <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
+        <header className="flex items-center justify-end gap-3 border-b border-gray-100 bg-white px-4 py-4 pl-16 lg:pl-6">
+          <div className="flex items-center justify-end gap-2 sm:gap-3">
             <Link
               href="/dashboard/topup"
               className="hidden items-center gap-2 rounded-2xl border border-brand-100 bg-brand-50 px-4 py-2 sm:flex"
