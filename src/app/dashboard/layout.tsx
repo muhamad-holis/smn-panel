@@ -43,7 +43,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <header className="flex items-center justify-between gap-3 border-b border-gray-100 bg-white px-4 py-4 pl-16 lg:pl-6">
           <Link href="/dashboard" className="flex items-center gap-2 lg:hidden">
             <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-              <Image src="/mascot.webp" alt="Artholic Panel" fill sizes="32px" />
+              <Image src="/logo.webp" alt="Artholic Panel" fill sizes="32px" />
             </div>
             <span className="text-sm font-bold tracking-tight text-gray-900">
               ARTHOLIC<span className="text-brand-500"> PANEL</span>
