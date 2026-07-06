@@ -1,12 +1,24 @@
 import { fetchAllServices } from "@/lib/fetch-all-services";
 import OrderForm from "./order-form";
 
+type Service = {
+  id: number;
+  name: string;
+  category: string | null;
+  sell_rate: number;
+  min_order: number;
+  max_order: number;
+  refill: boolean;
+  cancel: boolean;
+  description: string | null;
+};
+
 export default async function OrderPage({
   searchParams,
 }: {
   searchParams: { service?: string };
 }) {
-  const services = await fetchAllServices(
+  const services = await fetchAllServices<Service>(
     "id, name, category, sell_rate, min_order, max_order, refill, cancel, description",
     { onlyActive: true }
   );
