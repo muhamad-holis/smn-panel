@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Settings2, Receipt, ArrowLeftCircle, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, Settings2, Receipt, Banknote, ArrowLeftCircle, Menu, X } from "lucide-react";
 import { useState } from "react";
 
 const links = [
@@ -10,6 +10,7 @@ const links = [
   { href: "/admin/users", label: "Pengguna", icon: Users },
   { href: "/admin/pengaturan", label: "Layanan & Harga", icon: Settings2 },
   { href: "/admin/transaksi", label: "Transaksi", icon: Receipt },
+  { href: "/admin/withdrawals", label: "Withdraw", icon: Banknote },
 ];
 
 export default function AdminNav() {

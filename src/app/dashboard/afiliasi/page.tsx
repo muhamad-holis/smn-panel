@@ -1,9 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatIDR, formatDate, orderCode } from "@/lib/utils";
 import CopyLinkButton from "./copy-link-button";
-import { Users, Wallet, Percent } from "lucide-react";
+import WithdrawForm from "./withdraw-form";
+import { Users, Wallet, Percent, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+
+const WITHDRAW_STATUS_META: Record<string, { label: string; icon: any; color: string }> = {
+  pending: { label: "Menunggu", icon: Clock, color: "text-amber-600 bg-amber-50" },
+  processing: { label: "Diproses", icon: Loader2, color: "text-blue-600 bg-blue-50" },
+  paid: { label: "Selesai", icon: CheckCircle2, color: "text-green-600 bg-green-50" },
+  rejected: { label: "Ditolak", icon: XCircle, color: "text-red-500 bg-red-50" },
+};
 
 export default async function AfiliasiPage() {
   const supabase = createClient();
@@ -38,6 +46,20 @@ export default async function AfiliasiPage() {
     .eq("key", "affiliate_commission_percent")
     .single();
   const commissionPercent = percentSetting?.value || "5";
+
+  // Sisa komisi yang boleh dicairkan (total komisi - withdraw yang sudah diajukan/selesai)
+  const { data: availableCommission } = await supabase.rpc("get_available_commission", {
+    p_user_id: user!.id,
+  });
+  const available = Number(availableCommission || 0);
+
+  // Riwayat pengajuan withdraw
+  const { data: withdrawals } = await supabase
+    .from("withdrawals")
+    .select("id, amount, method, destination_name, account_number, status, admin_note, created_at")
+    .eq("user_id", user!.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
 
   const stats = [
     { label: "Total Referral", value: String(totalReferral || 0), icon: Users, bg: "bg-brand-500" },
@@ -76,6 +98,54 @@ export default async function AfiliasiPage() {
           <input readOnly value={refLink} className="input flex-1 text-gray-600" />
           <CopyLinkButton text={refLink} />
         </div>
+      </div>
+
+      <div className="rounded-2xl bg-gradient-to-br from-green-600 to-emerald-600 p-5 text-white">
+        <p className="text-xs font-medium uppercase tracking-wide text-green-100">Komisi Bisa Dicairkan</p>
+        <p className="mt-1 text-2xl font-bold">{formatIDR(available)}</p>
+        <p className="mt-1 text-xs text-green-100">
+          Cairkan langsung ke rekening bank atau e-wallet kamu, minimal {formatIDR(50000)}.
+        </p>
+      </div>
+
+      <WithdrawForm available={available} />
+
+      <div className="card !p-0 overflow-hidden">
+        <div className="border-b border-gray-100 px-5 py-4">
+          <h2 className="font-semibold text-gray-900">Riwayat Withdraw</h2>
+        </div>
+        {!withdrawals || withdrawals.length === 0 ? (
+          <p className="px-5 py-6 text-center text-sm text-gray-400">Belum ada permintaan withdraw.</p>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {withdrawals.map((w) => {
+              const meta = WITHDRAW_STATUS_META[w.status] || WITHDRAW_STATUS_META.pending;
+              const Icon = meta.icon;
+              return (
+                <div key={w.id} className="flex items-center gap-3 px-5 py-4">
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${meta.color}`}>
+                    <Icon size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-800">
+                      {w.method === "bank" ? "Transfer Bank" : "E-Wallet"} · {w.destination_name}
+                    </p>
+                    <p className="truncate text-xs text-gray-400">
+                      {w.account_number} · {formatDate(w.created_at)}
+                    </p>
+                    {w.status === "rejected" && w.admin_note && (
+                      <p className="mt-0.5 text-xs text-red-500">Alasan: {w.admin_note}</p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-gray-900">{formatIDR(Number(w.amount))}</p>
+                    <p className={`text-xs font-medium ${meta.color.split(" ")[0]}`}>{meta.label}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="card !p-0 overflow-hidden">
