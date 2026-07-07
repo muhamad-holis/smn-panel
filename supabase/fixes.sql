@@ -60,6 +60,38 @@ create unique index idx_transactions_topup_reference_unique
   on public.transactions (reference)
   where type = 'topup';
 
+-- ---------------------------------------------------------------------
+-- FIX #10 (MINOR): Pisahkan komisi afiliasi dari "adjustment" (penyesuaian
+-- manual admin) supaya riwayat transaksi lebih jelas dan tidak ambigu.
+-- ---------------------------------------------------------------------
+alter table public.transactions drop constraint if exists transactions_type_check;
+alter table public.transactions add constraint transactions_type_check
+  check (type in ('topup','order','refund','adjustment','affiliate'));
+
+create or replace function public.credit_affiliate_commission(
+  p_referrer_id uuid,
+  p_referred_user_id uuid,
+  p_order_id bigint,
+  p_amount numeric
+) returns void as $$
+begin
+  if p_amount is null or p_amount <= 0 then
+    return;
+  end if;
+
+  perform public.adjust_balance(
+    p_referrer_id,
+    p_amount,
+    'affiliate',
+    concat('order:', p_order_id),
+    'Komisi afiliasi dari referral'
+  );
+
+  insert into public.affiliate_commissions (referrer_id, referred_user_id, order_id, amount)
+  values (p_referrer_id, p_referred_user_id, p_order_id, p_amount);
+end;
+$$ language plpgsql security definer;
+
 -- =====================================================================
 -- SELESAI. Tidak ada langkah manual tambahan.
 -- =====================================================================

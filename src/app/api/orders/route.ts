@@ -44,6 +44,26 @@ export async function POST(req: NextRequest) {
 
   const admin = createServiceClient();
 
+  // Cegah order dobel: kalau ada order identik (user, layanan, link, jumlah)
+  // yang baru dibuat dalam 15 detik terakhir, anggap ini submit ganda
+  // (double-click atau retry jaringan) dan kembalikan order yang sudah ada
+  // itu saja, tanpa memotong saldo atau membuat order baru lagi.
+  const { data: recentDuplicate } = await admin
+    .from("orders")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("service_id", service.id)
+    .eq("link", link)
+    .eq("quantity", quantity)
+    .gte("created_at", new Date(Date.now() - 15_000).toISOString())
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (recentDuplicate) {
+    return NextResponse.json({ order: recentDuplicate, duplicate: true });
+  }
+
   try {
     await admin.rpc("adjust_balance", {
       p_user_id: user.id,

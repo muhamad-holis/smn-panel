@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatIDR, formatDate } from "@/lib/utils";
-import { ArrowDownCircle, ArrowUpCircle, RotateCcw, Settings2 } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, RotateCcw, Settings2, Users } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +9,7 @@ const TYPE_META: Record<string, { label: string; icon: any; color: string }> = {
   order: { label: "Order", icon: ArrowUpCircle, color: "text-red-500 bg-red-50" },
   refund: { label: "Refund", icon: RotateCcw, color: "text-blue-600 bg-blue-50" },
   adjustment: { label: "Penyesuaian", icon: Settings2, color: "text-orange-600 bg-orange-50" },
+  affiliate: { label: "Komisi Afiliasi", icon: Users, color: "text-purple-600 bg-purple-50" },
 };
 
 export default async function TransaksiPage() {
