@@ -11,7 +11,10 @@ export async function GET(req: NextRequest) {
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
-  const res = await fetch(`${appUrl}/api/orders/sync`, { method: "POST" });
+  const res = await fetch(`${appUrl}/api/orders/sync`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+  });
   const data = await res.json();
 
   return NextResponse.json({ ok: true, result: data });

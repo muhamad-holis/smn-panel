@@ -4,31 +4,54 @@ import { cashi } from "@/lib/cashi";
 import { notify } from "@/lib/notify";
 import { formatIDR } from "@/lib/utils";
 
+/**
+ * Tandai topup lunas secara ATOMIK: update hanya berhasil kalau status masih
+ * 'pending' saat itu juga. Ini mencegah saldo kecatat dua kali kalau webhook
+ * terpanggil berkali-kali hampir bersamaan (umum terjadi di payment gateway).
+ * Kalau update tidak mengenai baris manapun (0 rows), berarti sudah diproses
+ * request lain sebelumnya -> aman diabaikan (idempotent no-op).
+ */
 async function settleTopup(orderId: string, rawPayload: any) {
   const admin = createServiceClient();
 
-  const { data: topup } = await admin.from("topups").select("*").eq("invoice_id", orderId).single();
-  if (!topup) return { ok: false, reason: "not_found" as const };
-  if (topup.status === "paid") return { ok: true, reason: "already_settled" as const };
-
-  await admin
+  const { data: updated, error } = await admin
     .from("topups")
     .update({ status: "paid", paid_at: new Date().toISOString(), raw_response: rawPayload })
-    .eq("id", topup.id);
+    .eq("invoice_id", orderId)
+    .eq("status", "pending")
+    .select()
+    .maybeSingle();
 
+  if (error) return { ok: false, reason: "db_error" as const };
+
+  if (!updated) {
+    // Baris tidak ketemu dalam status 'pending' -> entah invoice tidak ada,
+    // entah sudah diproses request lain sebelumnya. Cek dulu mana yang benar.
+    const { data: existing } = await admin
+      .from("topups")
+      .select("id")
+      .eq("invoice_id", orderId)
+      .maybeSingle();
+
+    if (!existing) return { ok: false, reason: "not_found" as const };
+    return { ok: true, reason: "already_settled" as const };
+  }
+
+  // Hanya request yang BENAR-BENAR berhasil mengubah pending->paid yang boleh
+  // mengkreditkan saldo & kirim notifikasi, supaya tidak dobel.
   await admin.rpc("adjust_balance", {
-    p_user_id: topup.user_id,
-    p_amount: topup.amount,
+    p_user_id: updated.user_id,
+    p_amount: updated.amount,
     p_type: "topup",
     p_reference: orderId,
     p_description: "Top up via cashi.id",
   });
 
   await notify({
-    userId: topup.user_id,
+    userId: updated.user_id,
     type: "topup",
     title: "Top up berhasil",
-    message: `Saldo kamu bertambah ${formatIDR(topup.amount)}.`,
+    message: `Saldo kamu bertambah ${formatIDR(updated.amount)}.`,
     link: "/dashboard/deposit",
   });
 
@@ -67,7 +90,9 @@ export async function POST(req: NextRequest) {
 
   if (status === "SETTLED") {
     const result = await settleTopup(orderId, payload);
-    if (!result.ok) return NextResponse.json({ error: "Invoice tidak ditemukan." }, { status: 404 });
+    if (!result.ok && result.reason === "not_found") {
+      return NextResponse.json({ error: "Invoice tidak ditemukan." }, { status: 404 });
+    }
   } else if (status === "EXPIRED") {
     await markExpired(orderId, payload);
   }

@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { createServiceClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { provider } from "@/lib/provider";
 import { notify } from "@/lib/notify";
 import { orderCode, statusLabel } from "@/lib/utils";
@@ -10,8 +10,29 @@ const FINAL_STATUSES = ["Completed", "Partial", "Canceled", "Refunded", "Error"]
  * Sinkronisasi status order yang masih aktif (Pending/Processing/In progress)
  * dengan status terbaru dari provider MedanPedia. Kirim notifikasi ke user
  * kalau status berubah jadi status final (selesai/gagal/dibatalkan/refund).
+ *
+ * Diproteksi supaya tidak bisa dipanggil publik: hanya boleh diakses oleh
+ * (1) Vercel Cron / pemanggil server-to-server yang bawa CRON_SECRET, atau
+ * (2) admin yang login (dipakai tombol "Sync Sekarang" di panel admin).
  */
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const authHeader = req.headers.get("authorization");
+  const isCronCall = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+
+  if (!isCronCall) {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+    if (profile?.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
   const admin = createServiceClient();
 
   const { data: activeOrders } = await admin
@@ -33,7 +54,7 @@ export async function POST() {
     const info = result[String(order.provider_order_id)];
     if (!info || "error" in info) continue;
 
-    await admin
+    const { error: updateError } = await admin
       .from("orders")
       .update({
         status: info.status,
@@ -42,6 +63,11 @@ export async function POST() {
         updated_at: new Date().toISOString(),
       })
       .eq("id", order.id);
+
+    if (updateError) {
+      console.error(`Gagal update order ${order.id} ke status ${info.status}:`, updateError.message);
+      continue;
+    }
 
     if (FINAL_STATUSES.includes(info.status)) {
       const isSuccess = info.status === "Completed" || info.status === "Partial";
