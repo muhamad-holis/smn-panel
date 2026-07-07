@@ -72,7 +72,7 @@ export default async function TransaksiPage() {
     })),
     ...(unsettledTopups || []).map((t) => ({
       id: `topup-${t.id}`,
-      kind: (t.status === "pending" ? "topup_pending" : "topup_expired") as const,
+      kind: (t.status === "pending" ? "topup_pending" : "topup_expired") as "topup_pending" | "topup_expired",
       type: null,
       amount: Number(t.amount),
       balance_after: null,
